@@ -38,8 +38,8 @@ int main() {
 
   printf("Bridge mapped successfully! Toggling LED 0...\n");
 
-  for (int i = 0; i < 10; i++) {
-    int toggle_val = i % 2;
+  for (int i = 0; i < 40; i++) {
+    int toggle_val = i;
 
     *hps_to_fpga_ptr = toggle_val;
 
@@ -47,7 +47,7 @@ int main() {
 
     printf("Wrote: %d | Read Status: %d\n", toggle_val, status);
 
-    usleep(500000);  // Wait 0.5 seconds
+    usleep(1000000);  // Wait 0.5 seconds
   }
 
   *hps_to_fpga_ptr = 0;  // Turn off LED before exiting

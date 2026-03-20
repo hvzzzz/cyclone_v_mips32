@@ -102,7 +102,7 @@ architecture rtl of mips_32 is
 
   signal hps_to_fpga_signal : std_logic_vector(31 downto 0);
 
-  -- Blueprint of the Qsys system (Corrected Port Declarations)
+  -- Blueprint of the Qsys system
   component soc_mips is
     port (
       -- Clock and Reset 
@@ -255,21 +255,20 @@ begin
 
       -- FPGA Custom Fabric Bridges 
       pio_leds_export    => hps_to_fpga_signal,
-      mips_status_export => hps_to_fpga_signal
-      );
+      mips_status_export => hps_to_fpga_signal);
 
   -- Drive LED 0 with the HPS signal
-  LEDR(0) <= hps_to_fpga_signal(0);
+  LEDR(9 downto 0) <= hps_to_fpga_signal(9 downto 0);
 
   -- Tie off unused LEDs to 0 so they don't glow
-  LEDR(9 downto 1) <= (others => '0');
+  -- LEDR(9 downto 1) <= (others => '0');
 
   -- Tie off unused HEX displays to "1111111" (active low = off)
-  HEX0 <= "1111111";
-  HEX1 <= "1111111";
+  HEX0 <= "0000000";
+  HEX1 <= "0111110";
   HEX2 <= "1111111";
-  HEX3 <= "1111111";
+  HEX3 <= "0111110";
   HEX4 <= "1111111";
-  HEX5 <= "1111111";
+  HEX5 <= "0000000";
 
 end rtl;
