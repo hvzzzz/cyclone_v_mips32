@@ -1,0 +1,10 @@
+# [libraries]
+# defaultlib.files = [
+#     "*.vhd",
+#     "**/*.vhd"
+# ]
+[libraries]
+defaultlib.files = [
+    "rtl/**/*.vhd",
+    "tb/**/*.vhd"
+]
