@@ -1,0 +1,41 @@
+# ---------------------------------------
+# Quartus Databases & Incremental Builds
+# ---------------------------------------
+db/
+incremental_db/
+
+# ---------------------------------------
+# Compilation Reports & Logs
+# ---------------------------------------
+*.rpt
+*.summary
+*.smsg
+*.done
+*.htm
+*.pin
+*.sld
+*.jdi
+
+# ---------------------------------------
+# Bitstreams & Programming Files
+# ---------------------------------------
+*.sof
+*.pof
+*.jic
+
+# ---------------------------------------
+# Qsys / Platform Designer Generated IP
+# ---------------------------------------
+*.sopcinfo
+hps_isw_handoff/
+hps_sdram_p0_*.txt
+*.csv
+soc_mips/
+
+# ---------------------------------------
+# Editor & OS Temporary Files
+# ---------------------------------------
+*.bak
+*~
+.#*
+.DS_Store
