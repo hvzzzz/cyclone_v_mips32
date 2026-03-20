@@ -47,7 +47,7 @@ int main() {
 
     printf("Wrote: %d | Read Status: %d\n", toggle_val, status);
 
-    usleep(1000000);  // Wait 0.5 seconds
+    usleep(1000000);  // Wait 1 seconds
   }
 
   *hps_to_fpga_ptr = 0;  // Turn off LED before exiting

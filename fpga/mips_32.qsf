@@ -317,7 +317,7 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HPS_USB_STP
 
 set_global_assignment -name QIP_FILE soc_mips/synthesis/soc_mips.qip
 set_global_assignment -name SDC_FILE mips_32.SDC
-set_global_assignment -name VHDL_FILE mips_32.vhd
+set_global_assignment -name VHDL_FILE rtl/mips_32.vhd
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
