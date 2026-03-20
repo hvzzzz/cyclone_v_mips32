@@ -45,6 +45,22 @@ Host cyclone
     User root
 #+end_src
 
+*** ⚠️ A Note on HPS SDRAM Pin Assignments
+When Platform Designer (Qsys) generates the Hard Processor System (HPS), it also generates a specific Tcl script located at:
+~fpga/soc_mips/synthesis/submodules/hps_sdram_p0_pin_assignments.tcl~
+
+*Why is this needed?*
+The Cyclone V HPS DDR3 memory controller requires strict electrical termination settings (=SERIESTERMINATIONCONTROL= and =PARALLELTERMINATIONCONTROL=) to map physically to the board. If these assignments are missing, the Quartus Fitter will fail.
+
+*How to use it (The "Run Once" Rule):*
+This script is *intentionally excluded* from the automated ~build.tcl~ pipeline. Running it simultaneously with the main compilation flow causes a Quartus database lock collision (=Error 125091: Can't run Tcl command while a process is in progress=). 
+
+Because these settings are permanently written to your ~.qsf~ file the first time they are executed, you only need to run this script *once* under two conditions:
+1. When setting up the repository for the very first time.
+2. If you ever regenerate the ~soc_mips~ system in Platform Designer.
+
+To run it manually, open the Quartus GUI, navigate to *Tools -> Tcl Scripts*, select ~hps_sdram_p0_pin_assignments.tcl~, and click *Run*. Once applied, you can safely use ~make fpga-build~ for all future command-line compilations.
+
 ** Hardware/Software Bridge Communication
 
 Communication between the ARM processor (Linux user-space) and the FPGA fabric is handled via the Lightweight HPS-to-FPGA AXI Bridge.
