@@ -1,0 +1,13 @@
+# vsim -c -do "vcd file alu_ctrl_waves.vcd; vcd add -r /*; run 80 ns; quit -f" work.alu_ctrl_tb 
+# Start time: 17:55:42 on Mar 27,2026
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading work.alu_ctrl_tb(alu_ctrl_tb_arch)
+# Loading work.alu_ctrl(env_alu_ctrl)
+# vcd file alu_ctrl_waves.vcd
+#  vcd add -r /*
+#  run 80 ns
+#  quit -f
+# End time: 17:55:42 on Mar 27,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0

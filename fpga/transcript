@@ -1,0 +1,10 @@
+# vsim -c work.alu_tb 
+# Start time: 14:55:06 on Mar 27,2026
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading work.alu_tb(alu_tb_arch)
+# Loading ieee.numeric_std(body)
+# Loading work.alu(env_alu)
+# End time: 14:55:42 on Mar 27,2026, Elapsed time: 0:00:36
+# Errors: 0, Warnings: 0
