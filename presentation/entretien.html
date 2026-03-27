@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Generated on 2026-03-27 Fri 05:17 -->
+<meta charset="utf-8"/>
+<title><span class='smallcap'>MIPS</span> 32 Processor</title>
+<meta name="author" content="Hanan Quispe"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/simple.css" id="theme"/>
+
+<link rel="stylesheet" href="./robot-lung-nord.css"/>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title"><span class='smallcap'>MIPS</span> 32 Processor</h1><em>A Cyclone V Implementation</em><br><br>Hanan Quispe<br>March 27, 2026
+</section>
+<section>
+<section id="slide-org22153a7">
+<h2 id="org22153a7">Motivation</h2>
+<div class="outline-text-2" id="text-org22153a7">
+</div>
+</section>
+<section id="slide-orgbf97ef9">
+<h3 id="orgbf97ef9">Why <span class='smallcap'><span class='smallcap'>MIPS32</span></span> <span class='smallcap'><span class='smallcap'>R2000</span></span>?</h3>
+<ul>
+<li><b>Academic Foundation:</b> Implementing a &ldquo;Classic 9&rdquo; instruction subset (R, I, and J-types) to master the standard of <span class='smallcap'>RISC</span> <span class='smallcap'>HW</span>/<span class='smallcap'>SW</span> interfacing.</li>
+<li><b>Strategic Engineering:</b> Utilizing a minimalist <span class='smallcap'>ISA</span> to focus 100% on solving complex pipeline hazards (Data, Control, and Structural).</li>
+<li><b>Bridge to Modern Cores:</b> Applying these <span class='smallcap'>R2000</span> fundamentals to better understand high-performance architectures like the <span class='smallcap'>RISC</span>-V <span class='smallcap'>CVA6</span>.</li>
+<li><b>Full-Stack Mastery:</b> Progressing from high-level architectural modeling to physical <span class='smallcap'>RTL</span> synthesis on the Intel Cyclone V <span class='smallcap'>FPGA</span>.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org835ded4">
+<h2 id="org835ded4">State of the Art</h2>
+<div class="outline-text-2" id="text-org835ded4">
+</div>
+</section>
+<section id="slide-org5746696">
+<h3 id="org5746696">Comparative Context</h3>
+<ul>
+<li><b>Historical Baseline:</b> <span class='smallcap'>MIPS</span> <span class='smallcap'>R2000</span> (1985) established the fundamental 5-stage pipeline architecture used in modern <span class='smallcap'>RISC</span> cores.</li>
+<li><b>Architectural Contrast:</b> Implementing Branch Delay Slots—a unique <span class='smallcap'>MIPS</span> design choice that contrasts with the <span class='smallcap'>CVA6</span> <span class='smallcap'>RISC</span>-V architecture.</li>
+<li><b>Encoding Efficiency:</b> A fixed 32-bit instruction length (R, I, and J-types) allows for deterministic, single-cycle hardware decoding.</li>
+<li><b>Modern Relevance:</b> Studying these legacy features provides the critical context needed to optimize modern out-of-order execution systems.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org1362795">
+<h2 id="org1362795">Experimental Setup</h2>
+<div class="outline-text-2" id="text-org1362795">
+</div>
+</section>
+<section id="slide-orgcd06023">
+<h3 id="orgcd06023">Block Diagram</h3>
+
+<div id="orga302eca" class="figure">
+<p><img src="./images/block_diagram.png" alt="block_diagram.png" />
+</p>
+</div>
+</section>
+<section id="slide-orgba167fb">
+<h3 id="orgba167fb">Setup</h3>
+
+<div id="org105ea0f" class="figure">
+<p><img src="./images/setup.jpeg" alt="setup.jpeg" />
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org17f1e14">
+<h2 id="org17f1e14"><span class='smallcap'><span class='smallcap'>MIPS</span></span> 32 (<span class='smallcap'><span class='smallcap'>R2000</span></span>)</h2>
+<div class="outline-text-2" id="text-org17f1e14">
+</div>
+</section>
+<section id="slide-org4bb2a95">
+<h3 id="org4bb2a95">Architectural Blueprint</h3>
+<ul>
+<li><b>Datapath:</b> 5-stage pipeline (<span class='smallcap'>IF</span>, <span class='smallcap'>ID</span>, <span class='smallcap'>EX</span>, <span class='smallcap'>MEM</span>, <span class='smallcap'>WB</span>).</li>
+<li><b>Instructions</b> : lw, sw, add, sub, <span class='smallcap'>AND</span>, <span class='smallcap'>OR</span>, slt, beq, and j</li>
+<li><b>Components:</b>
+<ul>
+<li><b><span class='smallcap'>ALU</span>:</b> 32-bit arithmetic, logic, and shift operations.</li>
+<li><b>Register File:</b> 32x32-bit (Dual-read, single-write).</li>
+<li><b>Control Unit:</b> Hardwired logic (<span class='smallcap'>VHDL</span>) for opcode decoding.</li>
+
+</ul></li>
+<li><b>Memory Interface:</b> Interfacing with Cyclone V <span class='smallcap'>M10K</span> blocks for instruction and data storage.</li>
+
+</ul>
+</section>
+<section id="slide-org01bce99">
+<h3 id="org01bce99">Block Diagram (Hennessy &amp; Patterson)</h3>
+
+<div id="org5f91d88" class="figure">
+<p><img src="./images/mips.png" alt="mips.png" width="85%" />
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org466bbee">
+<h2 id="org466bbee">Roadmap</h2>
+<div class="outline-text-2" id="text-org466bbee">
+</div>
+</section>
+<section id="slide-orga3abc62">
+<h3 id="orga3abc62">Phase 1: Specification &amp; Component Design (Current)</h3>
+<ul>
+<li><span class='smallcap'>ALU</span> and Register File design in <span class='smallcap'>VHDL</span>.</li>
+<li>Unit testing with ModelSim testbenches.</li>
+
+</ul>
+</section>
+<section id="slide-org716ffae">
+<h3 id="org716ffae">Phase 2: Datapath Integration</h3>
+<ul>
+<li>Wiring the <span class='smallcap'>IF</span>/<span class='smallcap'>ID</span>/<span class='smallcap'>EX</span> stages.</li>
+<li>Implementation of the Instruction Decoder logic.</li>
+
+</ul>
+</section>
+<section id="slide-org7912112">
+<h3 id="org7912112">Phase 3: Memory &amp; <span class='smallcap'><span class='smallcap'>FPGA</span></span> Implementation</h3>
+<ul>
+<li>Mapping the memory to Intel Cyclone V resources using Quartus.</li>
+<li>Handling synchronous <span class='smallcap'>RAM</span> timing.</li>
+
+</ul>
+</section>
+<section id="slide-org9788395">
+<h3 id="org9788395">Phase 4: Validation</h3>
+<ul>
+<li>Running basic Assembly programs (Fibonacci, Sort) to verify <span class='smallcap'>ISA</span> compliance.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org2c586a7">
+<h2 id="org2c586a7">Theoretical Questions</h2>
+<div class="outline-text-2" id="text-org2c586a7">
+</div>
+</section>
+<section id="slide-org2379572">
+<h3 id="org2379572">Critical Design Challenges</h3>
+<ul>
+<li><b>Hazard Management:</b> Handling <span class='smallcap'>RAW</span> hazards (lw-use) via stalling or forwarding.</li>
+<li><b>Structural Integrity:</b> Why a Harvard Architecture is required for a 1-<span class='smallcap'>CPI</span> (Cycles Per Instruction) goal.</li>
+<li><b><span class='smallcap'>ISA</span> Implementation:</b> Managing the Branch Delay Slot in the <span class='smallcap'>IF</span>/<span class='smallcap'>ID</span> stages.</li>
+<li><b><span class='smallcap'>VHDL</span> Concurrency:</b> How the Control Unit generates signals for the Datapath in a single clock cycle.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgb7dd92e">
+<h2 id="orgb7dd92e">Thank You!</h2>
+<p>
+hanan.quispe-condori@polytechnique.edu
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+,chalkboard: {
+	penWidth: 3,
+    chalkWidth: 4,
+    chalkEffect: 0.1,
+    erasorDiameter: 20,
+	readOnly: false, // Configuation option allowing to prevent changes to existing drawings.
+	transition: 800, // Gives the duration (in milliseconds) of the transition for a slide change, so that the notes canvas is drawn after the transition is completed.
+	theme: "chalkboard", // Can be set to either "chalkboard" or "whiteboard".
+	color: [ 'rgba(150,150,150,1)', 'rgba(255,255,255,0.5)' ], // The first value gives the pen color, the second value gives the color of the chalk.
+	background: [ 'rgba(141,191,68,.1)', 'revealjs-plugins/chalkboard/img/blackboard.png' ], // The first value expects a (semi-)transparent color which is used to provide visual feedback that the notes canvas is enabled, the second value expects a filename to a background image for the chalkboard.
+	grid: false, // This pattern can be modified by setting the color, the distance between lines, and the line width, e.g. { color: 'rgb(127,127,255,0.1)', distance: 40, width: 2}
+},
+//
+// NOTES POINTER PLUGIN https://github.com/dougalsutherland/reveal.js-notes-pointer
+//
+notes_pointer: {
+	pointer: {
+		size: 15,  // in pixels (scaled like the rest of reveal.js)
+		color: 'rgba(239,82,91,0.8)',  // something valid for css background-color
+		key: 'O' // '.' does not work
+	},
+	notes: {
+		key: 'S'
+	}
+},
+simplemenu: {
+	menuclass: "menu",
+	// activeclass: "active",
+	// activeelement: "li",
+	selectby: "data-name",
+	// flat: false,
+	// scale: 0.67,
+	barhtml: {
+        header: "",
+		footer: "<div class='menubar'><ul class='menu'></ul><div>",
+	},
+	csspath: "https://cdn.jsdelivr.net/npm/reveal.js-simplemenu/plugin/simplemenu/simplemenu.css"
+},
+customcontrols: {
+	controls: [
+		{
+          icon: '<i class="fa-solid fa-expand"></i>',
+		  title: 'Enter fullscreen (F)',
+		  action: 'Reveal.triggerKey(70);'
+		},
+		{
+          icon: '<i class="fa-solid fa-comment"></i>',
+		  title: 'Toggle notes',
+		  action: 'Reveal.configure({showNotes: !Reveal.getConfig().showNotes});'
+		},
+		{
+          icon: '<i class="fa-solid fa-magnifying-glass"></i>',
+		  title: 'Search; with (repeated) enter/return',
+		  action: 'Reveal.getPlugins().search.open();'
+		},
+		{
+          icon: '<i class="fa-solid fa-keyboard"></i>',
+		  title: 'Keyboard shortcuts (?)',
+		  action: 'Reveal.toggleHelp();'
+		}
+	],
+},
+//
+// SPOTLIGHT PLUGIN https://github.com/denniskniep/reveal.js-plugin-spotlight
+//
+// spotlight: {
+// 	size: 120, // size of the spotlight
+// 	lockPointerInsideCanvas: false, // true: Locks the mouse pointer inside the presentation
+// 	toggleSpotlightOnMouseDown: true, // toggle spotlight by holding down the mouse key
+// 	spotlightCursor: 'none', // choose the cursor when spotlight is on
+// 	presentingCursor: 'crosshair', // choose the cursor when presentation mode / spotlight is on
+// 	initialPresentationMode: false, // true : initially in presentation mode
+// 	disablingUserSelect: true, // true : disable selecting in presentation mode
+// 	fadeInAndOut: 100, // set to a number as transition duration in ms to enable fade in and out
+// 	useAsPointer: false, // enable pointer mode
+// },
+//
+// MENU PLUGIN https://github.com/denehyg/reveal.js-menu
+//
+menu: {
+	numbers: true, // Add slide numbers to the titles in the slide list.
+	titleSelector: 'h1, h2, h3, h4, h5, div.title, caption.title, #toctitle', // Specifies which slide elements will be used for generating the slide titles in the menu.
+	transitions: true, // Specifies if the transitions menu panel will be shown.
+	openButton: true, // Adds a menu button to the slides to open the menu panel.
+	openSlideNumber: false, // If 'true' allows the slide number in the presentation to open the menu panel
+	loadIcons: true, // By default the menu will load it's own font-awesome library icons
+	sticky: true, // If 'true', the sticky option will leave the menu open until it is explicitly closed
+	custom: [ { title: 'Keys', icon: '<i class="fa fa-keyboard">', content: `
+		<ul class="slide-menu-items">
+		<li class="slide-menu-item">
+			<h3>Core</h3>
+			<p>? : Show core keys</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Zoom</h3>
+			<p>ALT+CLICK : Zoom-in</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Notes Pointer / Spotlight</h3>
+			<p>O : Toggle pointer on/off</p>
+			<p>L or (X then LEFT CLICK) : Toggle spotlight on/off</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Skip fragments</h3>
+			<p>PageDown : Show all fragments</p>
+			<p>PageUp : Show no fragment</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Chalkboard</h3>
+			<p>N : Notes canvas on/off</p>
+			<p>C : Chalkboard on/off</p>
+			<p>Z : Cycle pen colors forward</p>
+			<p>A : Cycle pen colors backward</p>
+			<p>DEL : Clear canvas/chalkboard</p>
+			<p>BASCKSPACE : Reset chalkboard data on current slide</p>
+			<p>D : Download drawing as JSON</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Menu</h3>
+			<p>M : Open menu</p>
+			<p>H or LEFT : Next left panel</p>
+			<p>L or RIGHT : Next right panel</p>
+			<p>K or UP : Up</p>
+			<p>J or DOWN : Down</p>
+			<p>U or PAGE UP : Page up</p>
+			<p>D or PAGE DOWN : Page down</p>
+			<p>HOME : Top</p>
+			<p>END : Bottom</p>
+			<p>SPACE or RETURN : Selection</p>
+			<p>ESC : Close menu</p>
+		</li>
+		<li class="slide-menu-item">
+			<h3>Custom</h3>
+			<p>I : ../index.html</p>
+		</li></ul>` }
+	],
+  	themes: [// Specifies the themes that will be available in the themes menu panel. Set to 'true' to show the themes menu panel with the default themes list. 
+		{ name: '########## light ##########', theme: 'themes/css/reveal-zenika-light.css' },
+		{ name: 'white'},
+		{ name: 'code-layers-multicolor', theme: 'themes/css/reveal-code-layers-multicolor.css' },
+		{ name: 'containers', theme: 'themes/css/reveal-containers.css' },
+		{ name: 'code-relax', theme: 'themes/css/reveal-code-relax.css' },
+        { name: '########## dark ##########', theme: 'themes/css/reveal-zenika-dark.css' },
+		{ name: 'security-dark', theme: 'themes/css/reveal-security-dark.css' },
+		{ name: 'containers-dark', theme: 'themes/css/reveal-containers-dark.css' }]
+},
+navigationMode: "linear",
+hash: true,
+slideNumber: "c/t"
+});
+</script>
+</body>
+</html>
