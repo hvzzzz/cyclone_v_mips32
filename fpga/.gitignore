@@ -39,3 +39,5 @@ soc_mips/
 *~
 .#*
 .DS_Store
+
+tb/work/
