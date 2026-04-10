@@ -12,7 +12,7 @@
   </columns>
  </systemtable>
  <library
-   expandedCategories="Library/Memory Interfaces and Controllers/SDRAM,Library/Memory Interfaces and Controllers,Library/University Program,Library,Library/Memory Interfaces and Controllers/Memory Interfaces with UniPHY,Library/DSP,Library/University Program/Memory,Library/Basic Functions/On Chip Memory,Library/University Program/Clock,Library/Basic Functions,Library/DSP/Video and Image Processing" />
+   expandedCategories="Library/Basic Functions/On Chip Memory,Library/Basic Functions/Configuration and Programming,Library/Basic Functions,Library,Project" />
  <window width="1680" height="1087" x="0" y="-37" />
  <generation simulation="VHDL" synthesis="VHDL" />
 </preferences>

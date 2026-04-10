@@ -103,8 +103,8 @@ architecture rtl of mips_32 is
 
   signal hps_to_fpga_signal : std_logic_vector(31 downto 0);
 -- Instruction Memory Interface (Read-Only)
-  signal imem_address   : std_logic_vector(9 downto 0);
-  signal imem_readdata  : std_logic_vector(31 downto 0);
+  signal imem_address       : std_logic_vector(9 downto 0);
+  signal imem_readdata      : std_logic_vector(31 downto 0);
 
   -- Data Memory Interface (Read/Write)
   signal dmem_address   : std_logic_vector(9 downto 0);
@@ -113,23 +113,61 @@ architecture rtl of mips_32 is
   signal dmem_readdata  : std_logic_vector(31 downto 0);
   signal dmem_byteen    : std_logic_vector(3 downto 0);
 
-  -- Blueprint of the Qsys system
+  signal pc_en                  :    std_logic;
+  signal next_pc                :    std_logic_vector(31 downto 0);
+  signal current_pc             :    std_logic_vector(31 downto 0);
+  function bits_2_display7(bits : in std_logic_vector(3 downto 0))
+    return std_logic_vector is variable display7 : std_logic_vector(6 downto 0);
+  begin
+    case bits is
+      when "0000" => display7 := "1000000";  -- 0
+      when "0001" => display7 := "1111001";  -- 1
+      when "0010" => display7 := "0100100";  -- 2
+      when "0011" => display7 := "0110000";  -- 3
+      when "0100" => display7 := "0011001";  -- 4
+      when "0101" => display7 := "0010010";  -- 5
+      when "0110" => display7 := "0000010";  -- 6
+      when "0111" => display7 := "1111000";  -- 7
+      when "1000" => display7 := "0000000";  -- 8
+      when "1001" => display7 := "0010000";  -- 9
+      when "1010" => display7 := "0001000";  -- A
+      when "1011" => display7 := "0000011";  -- b
+      when "1100" => display7 := "1000110";  -- C
+      when "1101" => display7 := "0100001";  -- d
+      when "1110" => display7 := "0000110";  -- E
+      when "1111" => display7 := "0001110";  -- F
+      when others => display7 := "1111111";  -- blank
+    end case;
+    return display7;
+  end;
+
+  component pc is
+    port (
+      clk        : in  std_logic;
+      reset      : in  std_logic;
+      en         : in  std_logic;
+      next_pc    : in  std_logic_vector(31 downto 0);
+      current_pc : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+-- Blueprint of the Qsys system
   component soc_mips is
     port (
-      -- Clock and Reset 
+      -- Clock and Reset
       clk_clk       : in std_logic := 'X';
       reset_reset_n : in std_logic := 'X';
 
-      -- HPS to FPGA Reset 
+      -- HPS to FPGA Reset
       hps_0_h2f_reset_reset_n : out std_logic;
 
-      -- MPU Events 
+      -- MPU Events
       hps_0_h2f_mpu_events_eventi     : in  std_logic := 'X';
       hps_0_h2f_mpu_events_evento     : out std_logic;
       hps_0_h2f_mpu_events_standbywfe : out std_logic_vector(1 downto 0);
       hps_0_h2f_mpu_events_standbywfi : out std_logic_vector(1 downto 0);
 
-      -- HPS DDR3 Memory 
+      -- HPS DDR3 Memory
       memory_mem_a       : out   std_logic_vector(14 downto 0);
       memory_mem_ba      : out   std_logic_vector(2 downto 0);
       memory_mem_ck      : out   std_logic;
@@ -147,7 +185,7 @@ architecture rtl of mips_32 is
       memory_mem_dm      : out   std_logic_vector(3 downto 0);
       memory_oct_rzqin   : in    std_logic                     := 'X';
 
-      -- HPS Peripherals 
+      -- HPS Peripherals
       hps_io_hps_io_emac1_inst_TX_CLK : out   std_logic;
       hps_io_hps_io_emac1_inst_TXD0   : out   std_logic;
       hps_io_hps_io_emac1_inst_TXD1   : out   std_logic;
@@ -183,30 +221,30 @@ architecture rtl of mips_32 is
       hps_io_hps_io_uart0_inst_RX     : in    std_logic := 'X';
       hps_io_hps_io_uart0_inst_TX     : out   std_logic;
 
-      instruction_memory_clk_clk       : in    std_logic                     := 'X';             -- clk
-      instruction_memory_rst_reset     : in    std_logic                     := 'X';             -- reset
-      instruction_memory_rst_reset_req : in    std_logic                     := 'X';             -- reset_req
-      instruction_memory_s2_address    : in    std_logic_vector(9 downto 0)  := (others => 'X'); -- address
-      instruction_memory_s2_chipselect : in    std_logic                     := 'X';             -- chipselect
-      instruction_memory_s2_clken      : in    std_logic                     := 'X';             -- clken
-      instruction_memory_s2_write      : in    std_logic                     := 'X';             -- write
-      instruction_memory_s2_readdata   : out   std_logic_vector(31 downto 0);                    -- readdata
-      instruction_memory_s2_writedata  : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
-      instruction_memory_s2_byteenable : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- byteenable
+      instruction_memory_clk_clk       : in  std_logic                     := 'X';  -- clk
+      instruction_memory_rst_reset     : in  std_logic                     := 'X';  -- reset
+      instruction_memory_rst_reset_req : in  std_logic                     := 'X';  -- reset_req
+      instruction_memory_s2_address    : in  std_logic_vector(9 downto 0)  := (others => 'X');  -- address
+      instruction_memory_s2_chipselect : in  std_logic                     := 'X';  -- chipselect
+      instruction_memory_s2_clken      : in  std_logic                     := 'X';  -- clken
+      instruction_memory_s2_write      : in  std_logic                     := 'X';  -- write
+      instruction_memory_s2_readdata   : out std_logic_vector(31 downto 0);  -- readdata
+      instruction_memory_s2_writedata  : in  std_logic_vector(31 downto 0) := (others => 'X');  -- writedata
+      instruction_memory_s2_byteenable : in  std_logic_vector(3 downto 0)  := (others => 'X');  -- byteenable
 
-      data_memory_clk_clk              : in    std_logic                     := 'X';             -- clk
-      data_memory_rst_reset            : in    std_logic                     := 'X';             -- reset
-      data_memory_rst_reset_req        : in    std_logic                     := 'X';             -- reset_req
-      data_memory_s2_address           : in    std_logic_vector(9 downto 0)  := (others => 'X'); -- address
-      data_memory_s2_chipselect        : in    std_logic                     := 'X';             -- chipselect
-      data_memory_s2_clken             : in    std_logic                     := 'X';             -- clken
-      data_memory_s2_write             : in    std_logic                     := 'X';             -- write
-      data_memory_s2_readdata          : out   std_logic_vector(31 downto 0);                    -- readdata
-      data_memory_s2_writedata         : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
-      data_memory_s2_byteenable        : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- byteenable
+      data_memory_clk_clk       : in  std_logic                     := 'X';  -- clk
+      data_memory_rst_reset     : in  std_logic                     := 'X';  -- reset
+      data_memory_rst_reset_req : in  std_logic                     := 'X';  -- reset_req
+      data_memory_s2_address    : in  std_logic_vector(9 downto 0)  := (others => 'X');  -- address
+      data_memory_s2_chipselect : in  std_logic                     := 'X';  -- chipselect
+      data_memory_s2_clken      : in  std_logic                     := 'X';  -- clken
+      data_memory_s2_write      : in  std_logic                     := 'X';  -- write
+      data_memory_s2_readdata   : out std_logic_vector(31 downto 0);  -- readdata
+      data_memory_s2_writedata  : in  std_logic_vector(31 downto 0) := (others => 'X');  -- writedata
+      data_memory_s2_byteenable : in  std_logic_vector(3 downto 0)  := (others => 'X');  -- byteenable
 
-      mips_status_export               : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
-      pio_leds_export                  : out   std_logic_vector(31 downto 0)                    -- export
+      mips_status_export : in  std_logic_vector(31 downto 0) := (others => 'X');  -- export
+      pio_leds_export    : out std_logic_vector(31 downto 0)  -- export
       );
   end component soc_mips;
 
@@ -288,53 +326,52 @@ begin
       -- Instruction Memory Wiring
       instruction_memory_clk_clk       => CLOCK_50,
       instruction_memory_rst_reset     => not KEY(0),
-      instruction_memory_rst_reset_req => '0',        -- Tied to 0
+      instruction_memory_rst_reset_req => '0',  -- Tied to 0
       instruction_memory_s2_address    => imem_address,
-      instruction_memory_s2_chipselect => '1',
-      instruction_memory_s2_clken      => '1',
+      instruction_memory_s2_chipselect => '1', instruction_memory_s2_clken => '1',
       instruction_memory_s2_write      => '0',
       instruction_memory_s2_readdata   => imem_readdata,
       instruction_memory_s2_writedata  => (others => '0'),
       instruction_memory_s2_byteenable => "1111",
 
       -- Data Memory Wiring
-      data_memory_clk_clk              => CLOCK_50,
-      data_memory_rst_reset            => not KEY(0),
-      data_memory_rst_reset_req        => '0',        -- Tied to 0
-      data_memory_s2_address           => dmem_address,
-      data_memory_s2_chipselect        => '1',
-      data_memory_s2_clken             => '1',
-      data_memory_s2_write             => dmem_write,
-      data_memory_s2_readdata          => dmem_readdata,
-      data_memory_s2_writedata         => dmem_writedata,
-      data_memory_s2_byteenable        => dmem_byteen,
+      data_memory_clk_clk       => CLOCK_50,
+      data_memory_rst_reset     => not KEY(0),
+      data_memory_rst_reset_req => '0',  -- Tied to 0
+      data_memory_s2_address    => dmem_address,
+      data_memory_s2_chipselect => '1',
+      data_memory_s2_clken      => '1',
+      data_memory_s2_write      => dmem_write,
+      data_memory_s2_readdata   => dmem_readdata,
+      data_memory_s2_writedata  => dmem_writedata,
+      data_memory_s2_byteenable => dmem_byteen,
 
       -- FPGA Custom Fabric Bridges 
       pio_leds_export    => hps_to_fpga_signal,
       mips_status_export => hps_to_fpga_signal);
 
-  -- Drive LED 0 with the HPS signal
-  LEDR(9 downto 0) <= hps_to_fpga_signal(9 downto 0);
+  pc_mips : pc
+    port map(
+      clk        => CLOCK_50,
+      reset      => SW(0),
+      en         => pc_en,
+      next_pc    => next_pc,
+      current_pc => current_pc
+      );
 
-  with hps_to_fpga_signal(3 downto 0) select
-    HEX0 <=
-    "1000000" when "0000",
-    "1111001" when "0001",
-    "0100100" when "0010",
-    "0110000" when "0011",
-    "0011001" when "0100",
-    "0010010" when "0101",
-    "0000010" when "0110",
-    "1111000" when "0111",
-    "0000000" when "1000",
-    "0010000" when "1001",
-    "1111111" when others;
-
-  -- HEX0 <= "0000000";
-  HEX1 <= "1111111";
-  HEX2 <= "1111001";
-  HEX3 <= "0011100";
-  HEX4 <= "1111111";
-  HEX5 <= "1000000";
+  process(CLOCK_50)
+  begin
+    if rising_edge(CLOCK_50) then
+      pc_en        <= '1';
+      imem_address <= current_pc(31 downto 22);
+      HEX0         <= bits_2_display7(imem_readdata(3 downto 0));
+      HEX1         <= bits_2_display7(imem_readdata(7 downto 4));
+      HEX2         <= bits_2_display7(imem_readdata(11 downto 8));
+      HEX3         <= bits_2_display7(imem_readdata(15 downto 12));
+      HEX4         <= bits_2_display7(imem_readdata(19 downto 16));
+      HEX5         <= bits_2_display7(imem_readdata(23 downto 20));
+      next_pc      <= std_logic_vector(unsigned(current_pc) +4);
+    end if;
+  end process;
 
 end rtl;

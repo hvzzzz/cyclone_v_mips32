@@ -11,6 +11,7 @@
 // Updated Offsets from Platform Designer
 #define DATA_MEM_OFFSET 0x0000
 #define INSTR_MEM_OFFSET 0x1000
+
 #define PIO_RESET_OFFSET 0x2000
 #define PIO_STS_OFFSET 0x2020
 
@@ -59,9 +60,18 @@ int main() {
 
   // Example: Manually encoding some MIPS machine code
   // Let's pretend 0x20080005 is "addi $t0, $zero, 5"
-  instr_mem_ptr[0] = 0x20080005;  // MIPS PC = 0x00
-  instr_mem_ptr[1] = 0x2009000A;  // MIPS PC = 0x04
-  instr_mem_ptr[2] = 0x01095020;  // MIPS PC = 0x08
+  instr_mem_ptr[0] = 0x20320032;   // MIPS PC = 0x00
+  instr_mem_ptr[1] = 0x20090002;   // MIPS PC = 0x04
+  instr_mem_ptr[2] = 0x01095023;   // MIPS PC = 0x08
+  instr_mem_ptr[3] = 0x20080004;   // MIPS PC = 0x00
+  instr_mem_ptr[4] = 0x20090005;   // MIPS PC = 0x04
+  instr_mem_ptr[5] = 0x01095026;   // MIPS PC = 0x08
+  instr_mem_ptr[6] = 0x20080007;   // MIPS PC = 0x00
+  instr_mem_ptr[7] = 0x20090008;   // MIPS PC = 0x04
+  instr_mem_ptr[8] = 0x01095029;   // MIPS PC = 0x08
+  instr_mem_ptr[9] = 0x2008000A;   // MIPS PC = 0x00
+  instr_mem_ptr[10] = 0x2009000B;  // MIPS PC = 0x04
+  instr_mem_ptr[11] = 0x0109502C;  // MIPS PC = 0x08
 
   // Read back to verify
   printf("Verification Readback:\n");
@@ -79,17 +89,19 @@ int main() {
   printf("Data Mem [0]: 0x%08X\n", data_mem_ptr[0]);
   printf("Data Mem [1]: 0x%08X\n\n", data_mem_ptr[1]);
 
-  for (int i = 0; i < 40; i++) {
-    int toggle_val = i;
+  /* for (int i = 0; i < 40; i++) { */
+  /*   int toggle_val = i; */
 
-    *pio_in_port_ptr = toggle_val;
+  /*   *pio_in_port_ptr = toggle_val; */
 
-    unsigned int status = *pio_out_port_ptr;
+  /*   unsigned int status = *pio_out_port_ptr; */
 
-    printf("Wrote: %d | Read Status: %d\n", toggle_val, status);
+  /*   printf("Wrote: %d | Read Status: %d\n", toggle_val, status); */
 
-    usleep(1000000);  // Wait 1 seconds
-  }
+  /*   usleep(1000000);  // Wait 1 seconds */
+  /* } */
+
+  /* *pio_in_port_ptr = 0; */
 
   // ==========================================
   // 3. MIPS CORE CONTROL (Future use)
