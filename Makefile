@@ -27,3 +27,11 @@ sw-deploy:
 sw-run:
 	@echo "Executing C code on HPS..."
 	$(MAKE) -C software/led_test run
+
+bram-deploy:
+	@echo "Deploying C code to HPS via SSH..."
+	$(MAKE) -C software/bram_test deploy
+
+bram-run:
+	@echo "Executing C code on HPS..."
+	$(MAKE) -C software/bram_test run

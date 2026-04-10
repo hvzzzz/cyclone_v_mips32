@@ -12,7 +12,7 @@
   </columns>
  </systemtable>
  <library
-   expandedCategories="Library,Library/Interface Protocols/PCI Express/QSYS Example Designs,Library/Interface Protocols/PCI Express,Library/Processors and Peripherals,Library/Interface Protocols,Project,Library/Processors and Peripherals/Peripherals" />
+   expandedCategories="Library/Memory Interfaces and Controllers/SDRAM,Library/Memory Interfaces and Controllers,Library/University Program,Library,Library/Memory Interfaces and Controllers/Memory Interfaces with UniPHY,Library/DSP,Library/University Program/Memory,Library/Basic Functions/On Chip Memory,Library/University Program/Clock,Library/Basic Functions,Library/DSP/Video and Image Processing" />
  <window width="1680" height="1087" x="0" y="-37" />
  <generation simulation="VHDL" synthesis="VHDL" />
 </preferences>

@@ -102,6 +102,16 @@ end entity;
 architecture rtl of mips_32 is
 
   signal hps_to_fpga_signal : std_logic_vector(31 downto 0);
+-- Instruction Memory Interface (Read-Only)
+  signal imem_address   : std_logic_vector(9 downto 0);
+  signal imem_readdata  : std_logic_vector(31 downto 0);
+
+  -- Data Memory Interface (Read/Write)
+  signal dmem_address   : std_logic_vector(9 downto 0);
+  signal dmem_write     : std_logic;
+  signal dmem_writedata : std_logic_vector(31 downto 0);
+  signal dmem_readdata  : std_logic_vector(31 downto 0);
+  signal dmem_byteen    : std_logic_vector(3 downto 0);
 
   -- Blueprint of the Qsys system
   component soc_mips is
@@ -173,9 +183,30 @@ architecture rtl of mips_32 is
       hps_io_hps_io_uart0_inst_RX     : in    std_logic := 'X';
       hps_io_hps_io_uart0_inst_TX     : out   std_logic;
 
-      -- Custom FPGA Fabric Connections 
-      mips_status_export : in  std_logic_vector(31 downto 0) := (others => 'X');
-      pio_leds_export    : out std_logic_vector(31 downto 0)
+      instruction_memory_clk_clk       : in    std_logic                     := 'X';             -- clk
+      instruction_memory_rst_reset     : in    std_logic                     := 'X';             -- reset
+      instruction_memory_rst_reset_req : in    std_logic                     := 'X';             -- reset_req
+      instruction_memory_s2_address    : in    std_logic_vector(9 downto 0)  := (others => 'X'); -- address
+      instruction_memory_s2_chipselect : in    std_logic                     := 'X';             -- chipselect
+      instruction_memory_s2_clken      : in    std_logic                     := 'X';             -- clken
+      instruction_memory_s2_write      : in    std_logic                     := 'X';             -- write
+      instruction_memory_s2_readdata   : out   std_logic_vector(31 downto 0);                    -- readdata
+      instruction_memory_s2_writedata  : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
+      instruction_memory_s2_byteenable : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- byteenable
+
+      data_memory_clk_clk              : in    std_logic                     := 'X';             -- clk
+      data_memory_rst_reset            : in    std_logic                     := 'X';             -- reset
+      data_memory_rst_reset_req        : in    std_logic                     := 'X';             -- reset_req
+      data_memory_s2_address           : in    std_logic_vector(9 downto 0)  := (others => 'X'); -- address
+      data_memory_s2_chipselect        : in    std_logic                     := 'X';             -- chipselect
+      data_memory_s2_clken             : in    std_logic                     := 'X';             -- clken
+      data_memory_s2_write             : in    std_logic                     := 'X';             -- write
+      data_memory_s2_readdata          : out   std_logic_vector(31 downto 0);                    -- readdata
+      data_memory_s2_writedata         : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
+      data_memory_s2_byteenable        : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- byteenable
+
+      mips_status_export               : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
+      pio_leds_export                  : out   std_logic_vector(31 downto 0)                    -- export
       );
   end component soc_mips;
 
@@ -254,6 +285,30 @@ begin
       hps_io_hps_io_uart0_inst_RX => HPS_UART_RX,
       hps_io_hps_io_uart0_inst_TX => HPS_UART_TX,
 
+      -- Instruction Memory Wiring
+      instruction_memory_clk_clk       => CLOCK_50,
+      instruction_memory_rst_reset     => not KEY(0),
+      instruction_memory_rst_reset_req => '0',        -- Tied to 0
+      instruction_memory_s2_address    => imem_address,
+      instruction_memory_s2_chipselect => '1',
+      instruction_memory_s2_clken      => '1',
+      instruction_memory_s2_write      => '0',
+      instruction_memory_s2_readdata   => imem_readdata,
+      instruction_memory_s2_writedata  => (others => '0'),
+      instruction_memory_s2_byteenable => "1111",
+
+      -- Data Memory Wiring
+      data_memory_clk_clk              => CLOCK_50,
+      data_memory_rst_reset            => not KEY(0),
+      data_memory_rst_reset_req        => '0',        -- Tied to 0
+      data_memory_s2_address           => dmem_address,
+      data_memory_s2_chipselect        => '1',
+      data_memory_s2_clken             => '1',
+      data_memory_s2_write             => dmem_write,
+      data_memory_s2_readdata          => dmem_readdata,
+      data_memory_s2_writedata         => dmem_writedata,
+      data_memory_s2_byteenable        => dmem_byteen,
+
       -- FPGA Custom Fabric Bridges 
       pio_leds_export    => hps_to_fpga_signal,
       mips_status_export => hps_to_fpga_signal);
@@ -277,7 +332,7 @@ begin
 
   -- HEX0 <= "0000000";
   HEX1 <= "1111111";
-  HEX2 <= "0011111";
+  HEX2 <= "1111001";
   HEX3 <= "0011100";
   HEX4 <= "1111111";
   HEX5 <= "1000000";
