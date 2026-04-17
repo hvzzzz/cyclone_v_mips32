@@ -60,7 +60,7 @@ int main() {
 
   // Example: Manually encoding some MIPS machine code
   // Let's pretend 0x20080005 is "addi $t0, $zero, 5"
-  instr_mem_ptr[0] = 0x20320032;   // MIPS PC = 0x00
+  instr_mem_ptr[0] = 0x02538820;   // MIPS PC = 0x00
   instr_mem_ptr[1] = 0x20090002;   // MIPS PC = 0x04
   instr_mem_ptr[2] = 0x01095023;   // MIPS PC = 0x08
   instr_mem_ptr[3] = 0x20080004;   // MIPS PC = 0x00

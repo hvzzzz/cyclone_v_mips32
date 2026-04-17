@@ -101,21 +101,44 @@ end entity;
 
 architecture rtl of mips_32 is
 
+  constant pc_offset : std_logic_vector (31 downto 0) :=x"00000004";
+
   signal hps_to_fpga_signal : std_logic_vector(31 downto 0);
 -- Instruction Memory Interface (Read-Only)
   signal imem_address       : std_logic_vector(9 downto 0);
   signal imem_readdata      : std_logic_vector(31 downto 0);
 
   -- Data Memory Interface (Read/Write)
-  signal dmem_address   : std_logic_vector(9 downto 0);
+  signal dmem_address   : std_logic_vector(31 downto 0);
   signal dmem_write     : std_logic;
-  signal dmem_writedata : std_logic_vector(31 downto 0);
+  -- signal dmem_writedata : std_logic_vector(31 downto 0);
   signal dmem_readdata  : std_logic_vector(31 downto 0);
   signal dmem_byteen    : std_logic_vector(3 downto 0);
 
-  signal pc_en                  :    std_logic;
-  signal next_pc                :    std_logic_vector(31 downto 0);
-  signal current_pc             :    std_logic_vector(31 downto 0);
+  signal pc_en      : std_logic;
+  signal next_pc    : std_logic_vector(31 downto 0);
+  signal current_pc : std_logic_vector(31 downto 0);
+  signal jmp_pc     : std_logic_vector(31 downto 0);
+  signal reg_dst    : std_logic;
+  signal alu_src    : std_logic;
+  signal mem_2_reg  : std_logic;
+  signal reg_write  : std_logic;
+  signal mem_read   : std_logic;
+  signal mem_write  : std_logic;
+  signal branch     : std_logic;
+  signal alu_op     : std_logic_vector(1 downto 0);
+  signal w_addr_i  : std_logic_vector(4 downto 0);
+  signal w_data_i  : std_logic_vector(31 downto 0);
+  -- signal w_en_i    : std_logic;
+  signal r1_data_o : std_logic_vector(31 downto 0);
+  signal r2_data_o : std_logic_vector(31 downto 0);
+  signal alu_control_signal : std_logic_vector(3 downto 0);
+  signal data_from_mux_to_alu : std_logic_vector(31 downto 0);
+  signal alu_zero : std_logic;
+  signal shifted_2 : std_logic_vector(31 downto 0);
+  signal normal_next_pc : std_logic_vector(31 downto 0);
+  signal jmp_added : std_logic_vector(31 downto 0);
+
   function bits_2_display7(bits : in std_logic_vector(3 downto 0))
     return std_logic_vector is variable display7 : std_logic_vector(6 downto 0);
   begin
@@ -148,6 +171,100 @@ architecture rtl of mips_32 is
       en         : in  std_logic;
       next_pc    : in  std_logic_vector(31 downto 0);
       current_pc : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component regist is
+    port(
+      clk       : in  std_logic;
+      r1_addr_i : in  std_logic_vector(4 downto 0);
+      r2_addr_i : in  std_logic_vector(4 downto 0);
+      w_addr_i  : in  std_logic_vector(4 downto 0);
+      w_data_i  : in  std_logic_vector(31 downto 0);
+      w_en_i    : in  std_logic;
+      r1_data_o : out std_logic_vector(31 downto 0);
+      r2_data_o : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component main_ctrl is
+    port(
+      op_code   : in  std_logic_vector(5 downto 0);
+      reg_dst   : out std_logic;
+      alu_src   : out std_logic;
+      mem_2_reg : out std_logic;
+      reg_write : out std_logic;
+      mem_read  : out std_logic;
+      mem_write : out std_logic_vector(3 downto 0);
+      branch    : out std_logic;
+      alu_op    : out std_logic_vector(1 downto 0)
+      );
+  end component;
+
+  component alu_ctrl is
+    port(
+      alu_op      : in  std_logic_vector(1 downto 0);
+      func_code   : in  std_logic_vector(5 downto 0);
+      alu_control : out std_logic_vector(3 downto 0)
+      );
+  end component;
+
+  component alu is
+    port(
+      in_a        : in  std_logic_vector(31 downto 0);
+      in_b        : in  std_logic_vector(31 downto 0);
+      alu_control : in  std_logic_vector(3 downto 0);
+      zero        : out std_logic;
+      alu_out     : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component mux_register is
+    port(
+      address_0 : in  std_logic_vector(4 downto 0);
+      address_1 : in  std_logic_vector(4 downto 0);
+      sel       : in  std_logic;
+      output    : out std_logic_vector(4 downto 0)
+      );
+  end component;
+
+  component mux_alu is
+    port(
+      data_from_register      : in  std_logic_vector(31 downto 0);
+      data_from_sign_extender : in  std_logic_vector(31 downto 0);
+      alu_src                 : in  std_logic;
+      output                  : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component mux_32 is
+    port(
+      input_0 : in  std_logic_vector(31 downto 0);
+      input_1 : in  std_logic_vector(31 downto 0);
+      sel     : in  std_logic;
+      output  : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component sign_extender is
+    port(
+      petit : in  std_logic_vector(15 downto 0);
+      extended : out  std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component shift_2 is
+    port(
+      input   : in  std_logic_vector(31 downto 0);
+      shifted : out std_logic_vector(31 downto 0)
+      );
+  end component;
+
+  component adder_32 is
+    port(
+      input_0 : in  std_logic_vector(31 downto 0);
+      input_1 : in  std_logic_vector(31 downto 0);
+      result  : out std_logic_vector(31 downto 0)
       );
   end component;
 
@@ -338,12 +455,12 @@ begin
       data_memory_clk_clk       => CLOCK_50,
       data_memory_rst_reset     => not KEY(0),
       data_memory_rst_reset_req => '0',  -- Tied to 0
-      data_memory_s2_address    => dmem_address,
+      data_memory_s2_address    => dmem_address(9 downto 0),
       data_memory_s2_chipselect => '1',
       data_memory_s2_clken      => '1',
       data_memory_s2_write      => dmem_write,
       data_memory_s2_readdata   => dmem_readdata,
-      data_memory_s2_writedata  => dmem_writedata,
+      data_memory_s2_writedata  => r2_data_o,
       data_memory_s2_byteenable => dmem_byteen,
 
       -- FPGA Custom Fabric Bridges 
@@ -358,7 +475,100 @@ begin
       next_pc    => next_pc,
       current_pc => current_pc
       );
+  register_mips : regist
+    port map(
+      clk       => CLOCK_50,
+      r1_addr_i => imem_readdata(25 downto 21),
+      r2_addr_i => imem_readdata(20 downto 16),
+      w_addr_i  => w_addr_i,
+      w_data_i  => w_data_i,
+      w_en_i    => reg_write,
+      r1_data_o => r1_data_o(31 downto 0),
+      r2_data_o => r2_data_o(31 downto 0)
+      );
+  main_control : main_ctrl
+    port map(
+      op_code   => imem_readdata(31 downto 26),
+      reg_dst   => reg_dst,
+      alu_src   => alu_src,
+      mem_2_reg => mem_2_reg,
+      reg_write => reg_write,
+      mem_read  => mem_read,
+      mem_write => dmem_byteen,
+      branch    => branch,
+      alu_op    => alu_op(1 downto 0)
+      );
+  mux_register_inst : mux_register
+    port map(
+      address_0 => imem_readdata(20 downto 16),
+      address_1 => imem_readdata(15 downto 11),
+      sel       => reg_dst,
+      output    => w_addr_i
+      );
 
+  alu_controller : alu_ctrl
+    port map(
+      alu_op      => alu_op(1 downto 0),
+      func_code   => imem_readdata(5 downto 0),
+      alu_control => alu_control_signal(3 downto 0)
+      );
+
+  sign_32_bit: sign_extender
+    port map(
+      petit => imem_readdata(15 downto 0),
+      extended =>   jmp_pc(31 downto 0)
+      );
+
+  mux_alu_mips: mux_alu
+    port map(
+      data_from_register => r2_data_o(31 downto 0),
+      data_from_sign_extender => jmp_pc(31 downto 0),
+      alu_src => alu_src,
+      output => data_from_mux_to_alu(31 downto 0)
+      );
+
+  alu_mips: alu
+    port map(
+      in_a        => r1_data_o(31 downto 0),
+      in_b        => data_from_mux_to_alu(31 downto 0),
+      alu_control => alu_control_signal(3 downto 0),
+      zero        => alu_zero,
+      alu_out     => dmem_address
+      );
+
+  mux_out_data: mux_32
+    port map(
+      input_0 => dmem_address,
+      input_1 => dmem_readdata,
+      sel => mem_2_reg,
+      output => w_data_i
+      );
+
+  left_shifter: shift_2
+    port map(
+      input => jmp_pc,
+      shifted => shifted_2
+      );
+
+  adder_branch_target: adder_32
+    port map(
+      input_0 => normal_next_pc,
+      input_1 => shifted_2,
+      result => jmp_added
+      );
+  adder_pc: adder_32
+    port map(
+      input_0 => current_pc,
+      input_1 => pc_offset,
+      result => normal_next_pc
+      );
+  mux_jmp_pc: mux_32
+    port map(
+      input_0 => normal_next_pc,
+      input_1 => jmp_added,
+      sel => (alu_zero and branch),
+      output => next_pc
+      );
   process(CLOCK_50)
   begin
     if rising_edge(CLOCK_50) then
@@ -370,7 +580,7 @@ begin
       HEX3         <= bits_2_display7(imem_readdata(15 downto 12));
       HEX4         <= bits_2_display7(imem_readdata(19 downto 16));
       HEX5         <= bits_2_display7(imem_readdata(23 downto 20));
-      next_pc      <= std_logic_vector(unsigned(current_pc) +4);
+    -- next_pc      <= std_logic_vector(unsigned(current_pc) +4);
     end if;
   end process;
 

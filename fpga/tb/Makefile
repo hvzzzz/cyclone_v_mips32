@@ -14,10 +14,12 @@ compile: $(WORK)
 	$(VCOM) ../rtl/core/alu_ctrl.vhd
 	$(VCOM) ../rtl/core/regist.vhd
 	$(VCOM) ../rtl/core/pc.vhd
+	$(VCOM) ../rtl/core/main_ctrl.vhd
 	$(VCOM) alu_tb.vhd
 	$(VCOM) alu_ctrl_tb.vhd
 	$(VCOM) regist_tb.vhd
 	$(VCOM) pc_tb.vhd
+	$(VCOM) main_ctrl_tb.vhd
 
 # Simulate ALU and open GTKWave
 sim_alu: compile
@@ -37,6 +39,9 @@ sim_pc: compile
 	$(VSIM) -c -do "vcd file pc_waves.vcd; vcd add -r /*; run 50 ns; quit -f" $(WORK).pc_tb
 	gtkwave pc_waves.vcd &
 
+sim_main_ctrl: compile
+	$(VSIM) -c -do "vcd file main_ctrl_waves.vcd; vcd add -r /*; run 80 ns; quit -f" $(WORK).main_ctrl_tb
+	gtkwave main_ctrl_waves.vcd &
 
 # Clean up generated files
 clean:

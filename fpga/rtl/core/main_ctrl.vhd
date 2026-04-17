@@ -9,7 +9,7 @@ entity main_ctrl is
     mem_2_reg : out std_logic;
     reg_write : out std_logic;
     mem_read  : out std_logic;
-    mem_write : out std_logic;
+    mem_write : out std_logic_vector(3 downto 0);
     branch    : out std_logic;
     alu_op    : out std_logic_vector(1 downto 0)
     );
@@ -18,6 +18,7 @@ end main_ctrl;
 architecture env_main_ctrl of main_ctrl is
 
   signal output_vector : std_logic_vector(8 downto 0);
+  signal bram_enable:std_logic_vector(3 downto 0) ;
 
 begin
   process_main_ctrl : process(op_code)
@@ -31,12 +32,22 @@ begin
     end case;
   end process process_main_ctrl;
 
+  process_bram_ctrl: process(output_vector(3))
+  begin
+    if output_vector(3)= '1' then
+      bram_enable <="1111";
+    else
+      bram_enable <="0000";
+    end if;
+  end process process_bram_ctrl;
+
   reg_dst   <= output_vector(8);
   alu_src   <= output_vector(7);
   mem_2_reg <= output_vector(6);
   reg_write <= output_vector(5);
   mem_read  <= output_vector(4);
-  mem_write <= output_vector(3);
+  -- mem_write <= output_vector(3);
+  mem_write <= bram_enable;
   branch    <= output_vector(2);
   alu_op    <= output_vector(1 downto 0);
 end env_main_ctrl;

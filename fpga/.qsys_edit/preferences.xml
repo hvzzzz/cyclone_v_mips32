@@ -13,6 +13,6 @@
  </systemtable>
  <library
    expandedCategories="Library/Basic Functions/On Chip Memory,Library/Basic Functions/Configuration and Programming,Library/Basic Functions,Library,Project" />
- <window width="1680" height="1087" x="0" y="-37" />
+ <window width="1670" height="824" x="0" y="50" />
  <generation simulation="VHDL" synthesis="VHDL" />
 </preferences>
