@@ -60,24 +60,32 @@ int main() {
 
   // Example: Manually encoding some MIPS machine code
   // Let's pretend 0x20080005 is "addi $t0, $zero, 5"
-  instr_mem_ptr[0] = 0x02538820;   // MIPS PC = 0x00
-  instr_mem_ptr[1] = 0x20090002;   // MIPS PC = 0x04
-  instr_mem_ptr[2] = 0x01095023;   // MIPS PC = 0x08
-  instr_mem_ptr[3] = 0x20080004;   // MIPS PC = 0x00
-  instr_mem_ptr[4] = 0x20090005;   // MIPS PC = 0x04
-  instr_mem_ptr[5] = 0x01095026;   // MIPS PC = 0x08
-  instr_mem_ptr[6] = 0x20080007;   // MIPS PC = 0x00
-  instr_mem_ptr[7] = 0x20090008;   // MIPS PC = 0x04
-  instr_mem_ptr[8] = 0x01095029;   // MIPS PC = 0x08
-  instr_mem_ptr[9] = 0x2008000A;   // MIPS PC = 0x00
-  instr_mem_ptr[10] = 0x2009000B;  // MIPS PC = 0x04
-  instr_mem_ptr[11] = 0x0109502C;  // MIPS PC = 0x08
+  // 0. add $1, $0, $0   (R-Type: $1 = 0 + 0)
+  instr_mem_ptr[0] = 0x00000820;  // MIPS PC = 0x00
+
+  // 1. sw $1, 4($0)     (sw: Store the 0 from $1 into Data Memory address 4)
+  instr_mem_ptr[1] = 0xAC010004;  // MIPS PC = 0x04
+
+  // 2. lw $2, 4($0)     (lw: Load the 0 from Data Memory address 4 into $2)
+  instr_mem_ptr[2] = 0x8C020004;  // MIPS PC = 0x08
+
+  // 3. beq $1, $2, 1    (beq: If $1 == $2, skip forward 1 instruction)
+  instr_mem_ptr[3] = 0x10220001;  // MIPS PC = 0x0C
+
+  // 4. add $3, $1, $2   (R-Type: This is the instruction we skip!)
+  instr_mem_ptr[4] = 0x00221820;  // MIPS PC = 0x10
+
+  // 5. beq $0, $0, -1   (beq trap: Infinite loop to safely halt the CPU)
+  instr_mem_ptr[5] = 0x1000FFFF;  // MIPS PC = 0x14
 
   // Read back to verify
   printf("Verification Readback:\n");
   printf("PC 0x00: 0x%08X\n", instr_mem_ptr[0]);
   printf("PC 0x04: 0x%08X\n", instr_mem_ptr[1]);
-  printf("PC 0x08: 0x%08X\n\n", instr_mem_ptr[2]);
+  printf("PC 0x08: 0x%08X\n", instr_mem_ptr[2]);
+  printf("PC 0x0C: 0x%08X\n", instr_mem_ptr[2]);
+  printf("PC 0x10: 0x%08X\n", instr_mem_ptr[2]);
+  printf("PC 0x14: 0x%08X\n", instr_mem_ptr[2]);
 
   // ==========================================
   // 2. TEST DATA MEMORY (WRITE & READ)

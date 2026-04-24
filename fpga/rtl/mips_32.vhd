@@ -138,6 +138,20 @@ architecture rtl of mips_32 is
   signal shifted_2 : std_logic_vector(31 downto 0);
   signal normal_next_pc : std_logic_vector(31 downto 0);
   signal jmp_added : std_logic_vector(31 downto 0);
+-- state machine signals
+  -- State machine signal
+  signal cycle_state : std_logic := '0';
+
+  -- Intermediate control signals to prevent accidental writes
+  signal ctrl_reg_write : std_logic;
+  signal ctrl_mem_write : std_logic_vector(3 downto 0);
+  signal pc_src : std_logic;
+
+  signal btn_sync_0 : std_logic := '0';
+  signal btn_sync_1 : std_logic := '0';
+  signal btn_sync_2 : std_logic := '0';
+  signal step_pulse : std_logic;
+
 
   function bits_2_display7(bits : in std_logic_vector(3 downto 0))
     return std_logic_vector is variable display7 : std_logic_vector(6 downto 0);
@@ -444,7 +458,8 @@ begin
       instruction_memory_clk_clk       => CLOCK_50,
       instruction_memory_rst_reset     => not KEY(0),
       instruction_memory_rst_reset_req => '0',  -- Tied to 0
-      instruction_memory_s2_address    => imem_address,
+      -- instruction_memory_s2_address    => imem_address,
+      instruction_memory_s2_address    => current_pc(11 downto 2),
       instruction_memory_s2_chipselect => '1', instruction_memory_s2_clken => '1',
       instruction_memory_s2_write      => '0',
       instruction_memory_s2_readdata   => imem_readdata,
@@ -455,7 +470,7 @@ begin
       data_memory_clk_clk       => CLOCK_50,
       data_memory_rst_reset     => not KEY(0),
       data_memory_rst_reset_req => '0',  -- Tied to 0
-      data_memory_s2_address    => dmem_address(9 downto 0),
+      data_memory_s2_address    => dmem_address(11 downto 2),
       data_memory_s2_chipselect => '1',
       data_memory_s2_clken      => '1',
       data_memory_s2_write      => dmem_write,
@@ -492,12 +507,15 @@ begin
       reg_dst   => reg_dst,
       alu_src   => alu_src,
       mem_2_reg => mem_2_reg,
-      reg_write => reg_write,
+      -- reg_write => reg_write,
+      reg_write => ctrl_reg_write,
       mem_read  => mem_read,
-      mem_write => dmem_byteen,
+      -- mem_write => dmem_byteen,
+      mem_write => ctrl_mem_write,
       branch    => branch,
       alu_op    => alu_op(1 downto 0)
       );
+
   mux_register_inst : mux_register
     port map(
       address_0 => imem_readdata(20 downto 16),
@@ -566,21 +584,56 @@ begin
     port map(
       input_0 => normal_next_pc,
       input_1 => jmp_added,
-      sel => (alu_zero and branch),
+      sel => pc_src,
       output => next_pc
       );
+
+  pc_src <= alu_zero and branch;
+
+  HEX5 <= bits_2_display7(current_pc(7 downto 4));
+  HEX4 <= bits_2_display7(current_pc(3 downto 0));
+
+  -- HEX3 & HEX2: Where is the branch trying to go? (Target Address)
+  HEX3 <= bits_2_display7(jmp_added(7 downto 4));
+  HEX2 <= bits_2_display7(jmp_added(3 downto 0));
+
+  -- HEX1: Did the ALU calculate $1 == $2 ? (Displays '1' or '0')
+  HEX1 <= bits_2_display7("000" & alu_zero);
+
+  -- HEX0: Does the controller know this is a branch? (Displays '1' or '0')
+  HEX0 <= bits_2_display7("000" & branch);
+
+
+  pc_en <= '1' when (cycle_state = '1' and step_pulse = '1') else '0';
+
+  reg_write <= ctrl_reg_write when (cycle_state = '1' and step_pulse = '1') else '0';
+
+  dmem_write <= '1' when (ctrl_mem_write = "1111" and cycle_state = '1' and step_pulse = '1') else '0';
+
+  dmem_byteen <= ctrl_mem_write when cycle_state = '1' else "0000";
+
   process(CLOCK_50)
   begin
     if rising_edge(CLOCK_50) then
-      pc_en        <= '1';
-      imem_address <= current_pc(31 downto 22);
-      HEX0         <= bits_2_display7(imem_readdata(3 downto 0));
-      HEX1         <= bits_2_display7(imem_readdata(7 downto 4));
-      HEX2         <= bits_2_display7(imem_readdata(11 downto 8));
-      HEX3         <= bits_2_display7(imem_readdata(15 downto 12));
-      HEX4         <= bits_2_display7(imem_readdata(19 downto 16));
-      HEX5         <= bits_2_display7(imem_readdata(23 downto 20));
-    -- next_pc      <= std_logic_vector(unsigned(current_pc) +4);
+      btn_sync_0 <= not KEY(0);
+      btn_sync_1 <= btn_sync_0;
+      btn_sync_2 <= btn_sync_1;
+    end if;
+  end process;
+
+  step_pulse <= btn_sync_1 and not btn_sync_2;
+
+-- 2. Your Updated, Safely Clocked FSM
+  process(CLOCK_50)
+  begin
+    if rising_edge(CLOCK_50) then
+      if SW(0) = '1' then
+        -- Asynchronous reset behavior inside the synchronous block
+        cycle_state <= '0';
+      elsif step_pulse = '1' then
+        -- Only toggle the state when the single-step pulse arrives
+        cycle_state <= not cycle_state;
+      end if;
     end if;
   end process;
 

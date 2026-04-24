@@ -15,7 +15,7 @@ architecture env_mux_alu of mux_alu is
 begin
   process_mux_alu : process(alu_src, data_from_register, data_from_sign_extender)
   begin
-    if alu_src = '1' then
+    if alu_src = '0' then
       output <= data_from_register;
     else
       output <= data_from_sign_extender;

@@ -15,7 +15,7 @@ architecture env_mux_32 of mux_32 is
 begin
   process_mux_32 : process(sel, input_0, input_1)
   begin
-    if sel = '1' then
+    if sel = '0' then
       output <= input_0;
     else
       output <= input_1;

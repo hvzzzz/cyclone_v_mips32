@@ -15,7 +15,7 @@ architecture env_mux_register of mux_register is
 begin
   process_main_ctrl : process(sel,address_0,address_1)
   begin
-    if sel = '1' then
+    if sel = '0' then
       output <= address_0;
     else
       output <= address_1;
