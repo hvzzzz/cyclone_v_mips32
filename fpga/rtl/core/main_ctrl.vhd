@@ -30,6 +30,7 @@ begin
       -- when "000100" => output_vector <= "-0-000101";
       when "101011" => output_vector <= "010001000"; -- sw
       when "000100" => output_vector <= "000000101"; -- beq
+      when "001000" => output_vector <= "010100000"; -- addi
       when others   => output_vector <= "000000000";
     end case;
   end process process_main_ctrl;

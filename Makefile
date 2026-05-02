@@ -35,3 +35,27 @@ bram-deploy:
 bram-run:
 	@echo "Executing C code on HPS..."
 	$(MAKE) -C software/bram_test run
+
+fibo-deploy:
+	@echo "Deploying C code to HPS via SSH..."
+	$(MAKE) -C software/fibonacci deploy
+
+fibo-run:
+	@echo "Executing C code on HPS..."
+	$(MAKE) -C software/fibonacci run
+
+fibo-read:
+	@echo "Executing C code on HPS..."
+	$(MAKE) -C software/fibonacci read
+
+lcd_build:
+	@echo "Executing C code on HPS..."
+	cd software/hps_lcd && ~/intelFPGA/20.1/embedded/embedded_command_shell.sh make
+
+lcd_deploy:
+	@echo "Executing C code on HPS..."
+	cd software/hps_lcd && scp hps_lcd cyclone:~/scripts/
+
+lcd_run:
+	@echo "Executing C code on HPS..."
+	ssh cyclone "~/scripts/hps_lcd"
