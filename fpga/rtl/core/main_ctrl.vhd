@@ -26,8 +26,6 @@ begin
     case op_code is
       when "000000" => output_vector <= "100100010"; -- R-type
       when "100011" => output_vector <= "011110000"; -- lw
-      -- when "101011" => output_vector <= "-1-001000";
-      -- when "000100" => output_vector <= "-0-000101";
       when "101011" => output_vector <= "010001000"; -- sw
       when "000100" => output_vector <= "000000101"; -- beq
       when "001000" => output_vector <= "010100000"; -- addi

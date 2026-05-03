@@ -12,7 +12,7 @@
   </columns>
  </systemtable>
  <library
-   expandedCategories="Library/Basic Functions/On Chip Memory,Library/Basic Functions/Configuration and Programming,Library/Basic Functions,Library,Project" />
- <window width="1670" height="824" x="0" y="50" />
+   expandedCategories="Project,Library,Library/Processors and Peripherals,Library/Interface Protocols,Library/Interface Protocols/PCI Express/QSYS Example Designs,Library/Interface Protocols/PCI Express,Library/Processors and Peripherals/Peripherals" />
+ <window width="1670" height="861" x="0" y="13" />
  <generation simulation="VHDL" synthesis="VHDL" />
 </preferences>

@@ -20,10 +20,12 @@ preplace inst soc_mips.hps_0.gmac0 -pg 1
 preplace inst soc_mips.hps_0.spim1 -pg 1
 preplace inst soc_mips.hps_0.timer2 -pg 1
 preplace inst soc_mips.hps_0.uart0 -pg 1
+preplace inst soc_mips.onchip_memory2_0 -pg 1 -lvl 3 -y 120
 preplace inst soc_mips.hps_0.gmac1 -pg 1
 preplace inst soc_mips.hps_0.gpio0 -pg 1
 preplace inst soc_mips.hps_0.timer3 -pg 1
 preplace inst soc_mips.hps_0.uart1 -pg 1
+preplace inst soc_mips.onchip_memory2_1 -pg 1 -lvl 3 -y 380
 preplace inst soc_mips.hps_0.sdrctl -pg 1
 preplace inst soc_mips.hps_0.gpio1 -pg 1
 preplace inst soc_mips.hps_0.bridges -pg 1
@@ -32,7 +34,7 @@ preplace inst soc_mips.hps_0.gpio2 -pg 1
 preplace inst soc_mips.hps_0.usb0 -pg 1
 preplace inst soc_mips.hps_0.clkmgr -pg 1
 preplace inst soc_mips.hps_0.arm_a9_0 -pg 1
-preplace inst soc_mips.hps_0 -pg 1 -lvl 2 -y 260
+preplace inst soc_mips.hps_0 -pg 1 -lvl 2 -y 490
 preplace inst soc_mips -pg 1 -lvl 1 -y 40 -regy -20
 preplace inst soc_mips.hps_0.usb1 -pg 1
 preplace inst soc_mips.hps_0.nand0 -pg 1
@@ -44,27 +46,33 @@ preplace inst soc_mips.hps_0.sdmmc -pg 1
 preplace inst soc_mips.hps_0.eosc2 -pg 1
 preplace inst soc_mips.hps_0.clk_0 -pg 1
 preplace inst soc_mips.hps_0.fpga_interfaces -pg 1
-preplace inst soc_mips.pio_0 -pg 1 -lvl 2 -y 30
+preplace inst soc_mips.pio_0 -pg 1 -lvl 2 -y 120
 preplace inst soc_mips.hps_0.scu -pg 1
 preplace inst soc_mips.hps_0.axi_sdram -pg 1
 preplace inst soc_mips.hps_0.axi_ocram -pg 1
 preplace inst soc_mips.hps_0.dcan0 -pg 1
 preplace inst soc_mips.hps_0.L2 -pg 1
-preplace inst soc_mips.clk_0 -pg 1 -lvl 1 -y 170
-preplace inst soc_mips.pio_1 -pg 1 -lvl 2 -y 130
+preplace inst soc_mips.clk_0 -pg 1 -lvl 1 -y 240
+preplace inst soc_mips.pio_1 -pg 1 -lvl 2 -y 280
 preplace inst soc_mips.hps_0.dcan1 -pg 1
 preplace inst soc_mips.hps_0.i2c0 -pg 1
 preplace inst soc_mips.hps_0.wd_timer0 -pg 1
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(MASTER)hps_0.h2f_reset,(MASTER)soc_mips.hps_0_h2f_reset) 1 2 1 N
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(MASTER)clk_0.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)pio_0.clk,(SLAVE)hps_0.h2f_axi_clock,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)hps_0.f2h_sdram0_clock,(SLAVE)pio_1.clk) 1 1 1 350
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.memory,(SLAVE)hps_0.memory) 1 0 2 NJ 430 NJ
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_1.reset,(MASTER)clk_0.clk_reset,(SLAVE)pio_0.reset) 1 1 1 370
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.pio_leds,(SLAVE)pio_0.external_connection) 1 0 2 NJ 60 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.hps_0_h2f_mpu_events,(SLAVE)hps_0.h2f_mpu_events) 1 0 2 NJ 410 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.clk,(SLAVE)clk_0.clk_in) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.mips_status,(SLAVE)pio_1.external_connection) 1 0 2 NJ 160 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.hps_io,(SLAVE)hps_0.hps_io) 1 0 2 NJ 350 NJ
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_0.s1,(SLAVE)pio_1.s1,(MASTER)hps_0.h2f_lw_axi_master) 1 1 2 390 480 700
-levelinfo -pg 1 0 140 850
-levelinfo -hier soc_mips 150 180 510 720
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)pio_1.external_connection,(SLAVE)soc_mips.mips_status) 1 0 2 NJ 310 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(MASTER)hps_0.h2f_reset,(MASTER)soc_mips.hps_0_h2f_reset) 1 2 2 NJ 600 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)hps_0.h2f_mpu_events,(SLAVE)soc_mips.hps_0_h2f_mpu_events) 1 0 2 NJ 640 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.data_memory_clk,(SLAVE)onchip_memory2_1.clk2) 1 0 3 NJ 410 NJ 410 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)clk_0.clk_in,(SLAVE)soc_mips.clk) 1 0 1 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.instruction_memory_s2,(SLAVE)onchip_memory2_0.s2) 1 0 3 NJ 230 NJ 230 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.reset2,(SLAVE)soc_mips.instruction_memory_rst) 1 0 3 NJ 100 NJ 70 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_1.s2,(SLAVE)soc_mips.data_memory_s2) 1 0 3 NJ 450 NJ 450 NJ
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.reset1,(SLAVE)pio_0.reset,(SLAVE)onchip_memory2_1.reset1,(MASTER)clk_0.clk_reset,(SLAVE)pio_1.reset) 1 1 2 380 90 790
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)soc_mips.reset) 1 0 1 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.pio_leds,(SLAVE)pio_0.external_connection) 1 0 2 NJ 150 NJ
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_0.s1,(SLAVE)onchip_memory2_1.s1,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)pio_1.s1,(SLAVE)onchip_memory2_0.s1) 1 1 2 420 110 750
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)hps_0.memory,(SLAVE)soc_mips.memory) 1 0 2 NJ 660 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.instruction_memory_clk,(SLAVE)onchip_memory2_0.clk2) 1 0 3 NJ 40 NJ 40 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.hps_io,(SLAVE)hps_0.hps_io) 1 0 2 NJ 580 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.data_memory_rst,(SLAVE)onchip_memory2_1.reset2) 1 0 3 NJ 430 NJ 430 NJ
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_0.clk,(SLAVE)hps_0.h2f_axi_clock,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)pio_1.clk,(MASTER)clk_0.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)onchip_memory2_0.clk1,(SLAVE)onchip_memory2_1.clk1,(SLAVE)hps_0.f2h_sdram0_clock) 1 1 2 400 390 810
+levelinfo -pg 1 0 150 1140
+levelinfo -hier soc_mips 160 190 540 900 1010

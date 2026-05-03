@@ -164,9 +164,10 @@ def assemble(asm_lines):
 
             array_index = pc // 4
             clean_comment = " ".join(orig.split())
-            output.append(
-                f"instr_mem_ptr[{array_index}] = 0x{machine_code:08X}; // {clean_comment}"
-            )
+            output.append(f"{machine_code:08X} // {clean_comment}")
+            # output.append(
+            #     f"instr_mem_ptr[{array_index}] = 0x{machine_code:08X}; // {clean_comment}"
+            # )
 
         except IndexError:
             print(f"Error on line {line_num}: Missing operands for instruction '{op}'")

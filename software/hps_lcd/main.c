@@ -30,6 +30,7 @@
 // ============================================================================
 
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,11 +64,16 @@ const uint8_t mini_font[256][5] = {['0'] = {0x3E, 0x51, 0x49, 0x45, 0x3E},
                                    ['D'] = {0x7F, 0x41, 0x41, 0x22, 0x1C},
                                    ['E'] = {0x7F, 0x49, 0x49, 0x49, 0x41},
                                    ['F'] = {0x7F, 0x09, 0x09, 0x09, 0x01},
+                                   ['L'] = {0x7F, 0x40, 0x40, 0x40, 0x40},
                                    ['P'] = {0x7F, 0x09, 0x09, 0x09, 0x06},
                                    ['I'] = {0x00, 0x41, 0x7F, 0x41, 0x00},
                                    ['R'] = {0x7F, 0x09, 0x19, 0x29, 0x46},
                                    ['O'] = {0x3E, 0x41, 0x41, 0x41, 0x3E},
+                                   ['S'] = {0x46, 0x49, 0x49, 0x49, 0x31},
                                    ['T'] = {0x01, 0x01, 0x7F, 0x01, 0x01},
+                                   ['U'] = {0x3F, 0x40, 0x40, 0x40, 0x3F},
+                                   ['V'] = {0x1F, 0x20, 0x40, 0x20, 0x1F},
+                                   ['W'] = {0x3F, 0x40, 0x38, 0x40, 0x3F},
                                    ['n'] = {0x7C, 0x08, 0x04, 0x04, 0x78},
                                    ['x'] = {0x44, 0x28, 0x10, 0x28, 0x44},
                                    ['['] = {0x00, 0x7F, 0x41, 0x41, 0x00},
@@ -108,7 +114,12 @@ void Draw_MiniString(LCD_CANVAS *canvas, int start_x, int start_y,
 
 #define DATA_MEM_OFFSET 0x0000
 #define INSTR_MEM_OFFSET 0x1000
-#define PIO_STS_OFFSET 0x2020
+#define FIFO_VALID_OFFSET 0x2000
+#define FIFO_COUNTER_OFFSET 0x2010
+#define FIFO_2_OFFSET 0x2020
+#define FIFO_1_OFFSET 0x2030
+#define FIFO_0_OFFSET 0x2040
+#define PIO_STS_OFFSET 0x2050
 
 #define DATA_MEM_WORDS 1024
 #define INSTR_MEM_WORDS 1024
@@ -116,7 +127,9 @@ void Draw_MiniString(LCD_CANVAS *canvas, int start_x, int start_y,
 int main() {
   int fd;
   void *lcd_virtual_base, *mips_virtual_base;
-  volatile uint32_t *data_mem_ptr, *instr_mem_ptr, *pio_pc_ptr;
+  volatile uint32_t *instr_mem_ptr, *pio_pc_ptr;
+  volatile uint32_t *fifo_valid_ptr, *fifo_counter_ptr;
+  volatile uint32_t *fifo_0_ptr, *fifo_1_ptr, *fifo_2_ptr;
   LCD_CANVAS LcdCanvas;
   char str_buffer[32];
 
@@ -127,12 +140,25 @@ int main() {
   mips_virtual_base = mmap(NULL, MIPS_HW_REGS_SPAN, (PROT_READ | PROT_WRITE),
                            MAP_SHARED, fd, MIPS_HW_REGS_BASE);
 
-  data_mem_ptr =
-      (uint32_t *)(mips_virtual_base +
-                   ((MIPS_HW_REGS_BASE + DATA_MEM_OFFSET) & MIPS_HW_REGS_MASK));
   instr_mem_ptr =
       (uint32_t *)(mips_virtual_base + ((MIPS_HW_REGS_BASE + INSTR_MEM_OFFSET) &
                                         MIPS_HW_REGS_MASK));
+    fifo_valid_ptr =
+      (uint32_t *)(mips_virtual_base + ((MIPS_HW_REGS_BASE + FIFO_VALID_OFFSET) &
+                      MIPS_HW_REGS_MASK));
+    fifo_counter_ptr =
+      (uint32_t *)(mips_virtual_base +
+             ((MIPS_HW_REGS_BASE + FIFO_COUNTER_OFFSET) &
+            MIPS_HW_REGS_MASK));
+    fifo_2_ptr =
+      (uint32_t *)(mips_virtual_base +
+             ((MIPS_HW_REGS_BASE + FIFO_2_OFFSET) & MIPS_HW_REGS_MASK));
+    fifo_1_ptr =
+      (uint32_t *)(mips_virtual_base +
+             ((MIPS_HW_REGS_BASE + FIFO_1_OFFSET) & MIPS_HW_REGS_MASK));
+    fifo_0_ptr =
+      (uint32_t *)(mips_virtual_base +
+             ((MIPS_HW_REGS_BASE + FIFO_0_OFFSET) & MIPS_HW_REGS_MASK));
   pio_pc_ptr =
       (uint32_t *)(mips_virtual_base +
                    ((MIPS_HW_REGS_BASE + PIO_STS_OFFSET) & MIPS_HW_REGS_MASK));
@@ -146,13 +172,6 @@ int main() {
   LCDHW_Init(lcd_virtual_base);
   LCDHW_BackLight(true);
   LCD_Init();
-
-  // ==========================================
-  // DEBUGGER STATE VARIABLES (Add these here!)
-  // ==========================================
-  uint32_t shadow_mem[DATA_MEM_WORDS] = {0};
-  uint32_t last_pc = 0;
-  int display_idx = 0;
 
   // ==========================================
   // MAIN DEBUGGER LOOP
@@ -186,61 +205,41 @@ int main() {
     sprintf(str_buffer, "[C] 0x%08X", instr_mem_ptr[pc_idx]);
     Draw_MiniString(&LcdCanvas, 0, 16, str_buffer);
 
-    sprintf(str_buffer, "[+] 0x%08X", instr_mem_ptr[pc_idx + 1]);
+    if ((pc_idx + 1) < INSTR_MEM_WORDS)
+      sprintf(str_buffer, "[+] 0x%08X", instr_mem_ptr[pc_idx + 1]);
+    else
+      sprintf(str_buffer, "[+] ----------");
     Draw_MiniString(&LcdCanvas, 0, 24, str_buffer);
 
-    Draw_MiniString(&LcdCanvas, 0, 32, "-ADDR------DATA------");
+    Draw_MiniString(&LcdCanvas, 0, 32, "-LAST 3 VALUES-------");
 
-    // 3. SHADOW MEMORY SCANNER
-    // If the PC drops, the user pressed reset.
-    if (current_pc < last_pc) {
-      display_idx = 0;  // Snap view to top
+    // 3. FIFO VIEW (DIRECT HARDWARE STATE)
+    uint32_t fifo_valid = *fifo_valid_ptr;
+    uint32_t fifo_counter = *fifo_counter_ptr;
+    uint32_t fifo_0 = *fifo_0_ptr;
+    uint32_t fifo_1 = *fifo_1_ptr;
+    uint32_t fifo_2 = *fifo_2_ptr;
 
-      // To make autoscrolling work, we MUST force a state change.
-      // We wipe both the real hardware BRAM and our software shadow memory.
-      // Now, when MIPS writes '34', the ARM sees '0' change to '34' and
-      // scrolls!
-      for (int i = 0; i < DATA_MEM_WORDS; i++) {
-        data_mem_ptr[i] = 0;
-        shadow_mem[i] = 0;
-      }
-    }
-    last_pc = current_pc;
-
-    // Compare real BRAM against our Shadow Memory to find new writes
-    for (int i = 0; i < DATA_MEM_WORDS; i++) {
-      if (data_mem_ptr[i] != shadow_mem[i]) {
-        shadow_mem[i] = data_mem_ptr[i];  // Update our shadow copy
-        display_idx = i;                  // Snap the view to this address
-      }
-    }
-
-    // Compare real BRAM against our Shadow Memory to find new writes
-    for (int i = 0; i < DATA_MEM_WORDS; i++) {
-      if (data_mem_ptr[i] != shadow_mem[i]) {
-        shadow_mem[i] = data_mem_ptr[i];  // Update our shadow copy
-        display_idx = i;                  // Snap the view to this address
-      }
-    }
-
-    // 4. DATA MEMORY VIEW (GDB Hex Format)
-    // Create a sliding window so we always show 3 lines safely
-    int start_idx = display_idx - 2;
-    if (start_idx < 0) start_idx = 0;
-
-    // Line 1
-    sprintf(str_buffer, "0x%03X: %u", start_idx * 4, data_mem_ptr[start_idx]);
+    // 4. LAST 3 VALUES VIEW
+    if ((fifo_valid & 0x4U) != 0)
+      sprintf(str_buffer, "%u", fifo_2);
+    else
+      sprintf(str_buffer, "----");
     Draw_MiniString(&LcdCanvas, 0, 40, str_buffer);
 
-    // Line 2
-    sprintf(str_buffer, "0x%03X: %u", (start_idx + 1) * 4,
-            data_mem_ptr[start_idx + 1]);
+    if ((fifo_valid & 0x2U) != 0)
+      sprintf(str_buffer, "%u", fifo_1);
+    else
+      sprintf(str_buffer, "----");
     Draw_MiniString(&LcdCanvas, 0, 48, str_buffer);
 
-    // Line 3
-    sprintf(str_buffer, "0x%03X: %u", (start_idx + 2) * 4,
-            data_mem_ptr[start_idx + 2]);
+    if ((fifo_valid & 0x1U) != 0)
+      sprintf(str_buffer, "%u", fifo_0);
+    else
+      sprintf(str_buffer, "----");
     Draw_MiniString(&LcdCanvas, 0, 56, str_buffer);
+
+    (void)fifo_counter;
 
     // --- PUSH FRAME ---
     DRAW_Refresh(&LcdCanvas);

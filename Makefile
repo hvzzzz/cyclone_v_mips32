@@ -59,3 +59,16 @@ lcd_deploy:
 lcd_run:
 	@echo "Executing C code on HPS..."
 	ssh cyclone "~/scripts/hps_lcd"
+
+flasher_deploy:
+	@echo "Executing C code on HPS..."
+	$(MAKE) -C software/flasher deploy
+
+flasher_run:
+	@echo "Executing C code on HPS..."
+	$(MAKE) -C software/flasher run
+
+flasher_all:
+	cd scripts && python3 assembler.py fibo.asm > program.hex
+	$(MAKE) -C software/flasher deploy
+	$(MAKE) -C software/flasher run

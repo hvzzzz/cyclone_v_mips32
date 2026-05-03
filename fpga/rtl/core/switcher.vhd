@@ -12,7 +12,9 @@ entity switcher is
     pc_en          : out std_logic;
     reg_write      : out std_logic;
     dmem_write     : out std_logic;
-    dmem_byteen    : out std_logic_vector(3 downto 0));
+    cycle_out      : out std_logic_vector(1 downto 0);
+    dmem_byteen    : out std_logic_vector(3 downto 0)
+    );
 end switcher;
 
 architecture env_switcher of switcher is
@@ -32,29 +34,7 @@ begin
     end if;
   end process;
 
-  -- manual_en='1': single-step on button edge
-  -- manual_en='0': free-run, FSM advances every clock (step_pulse always '1')
   step_pulse <= (btn_sync_1 and not btn_sync_2) when manual_en = '1' else '1';
-  -- process(clk)
-  -- begin
-  --   if rising_edge(clk) then
-  --     if reset = '1' then
-  --       cycle_state <= '0';
-  --     elsif step_pulse = '1' then
-  --       cycle_state <= not cycle_state;
-  --     end if;
-  --   end if;
-  -- end process;
-
-  -- pc_en <= '1' when (cycle_state = '1' and step_pulse = '1') else '0';
-
-  -- reg_write <= ctrl_reg_write when (cycle_state = '1' and step_pulse = '1') else '0';
-
-  -- dmem_write <= '1' when (ctrl_mem_write = "1111" and cycle_state = '1' and step_pulse = '1') else '0';
-
-  -- dmem_byteen <= ctrl_mem_write when cycle_state = '1' else "0000";
-
--- State machine: 0 → 1 → 2 → 0
 
   process(clk)
   begin
@@ -68,18 +48,15 @@ begin
             when "01"   => cycle_state <= "10";
             when others => cycle_state <= "00";
           end case;
-        end if;
+        end if; end if;
       end if;
-    end if;
-  end process;
+    end process;
 
--- Commit only at writeback
-  pc_en     <= '1' when (cycle_state = "10" and step_pulse = '1') else '0';
-  reg_write <= ctrl_reg_write when (cycle_state = "10" and step_pulse = '1') else '0';
+      pc_en     <= '1'            when (cycle_state = "10" and step_pulse = '1') else '0';
+      reg_write <= ctrl_reg_write when (cycle_state = "10" and step_pulse = '1') else '0';
 
--- sw writes at execute (address+data already valid from ALU/registers)
-  -- step_pulse gate prevents repeated writes while waiting for button in manual mode
-  dmem_write  <= '1' when (ctrl_mem_write = "1111" and cycle_state = "01" and step_pulse = '1') else '0';
-  dmem_byteen <= ctrl_mem_write when cycle_state = "01" else "0000";
+      dmem_write  <= '1'            when (ctrl_mem_write = "1111" and cycle_state = "01" and step_pulse = '1') else '0';
+      dmem_byteen <= ctrl_mem_write when cycle_state = "01"                                                    else "0000";
+      cycle_out <= cycle_state;
 
-end env_switcher;
+    end env_switcher;

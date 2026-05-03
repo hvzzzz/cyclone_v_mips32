@@ -1,9 +1,9 @@
 add  $1, $0, $0         # $1 = 0  (Current Fib)
       addi $2, $0, 1    # $2 = 1  (Next Fib)
       add  $3, $0, $0   # $3 = 0  (Memory Address Pointer)
-      addi $4, $0, 40   # $4 = 40 (Loop Limit: 10 numbers * 4 bytes)
+      addi $4, $0, 84   # $4 = 84 (Loop Limit: 21 numbers * 4 bytes)
 
-loop: beq  $3, $4, 6    # If Pointer == 40, jump forward 6 instructions to 'exit'
+loop: beq  $3, $4, 6    # If Pointer == $4, jump forward 6 instructions to 'exit'
       sw   $1, 0($3)    # Store Current Fib to Data Memory
       add  $5, $1, $2   # Temp = Current + Next
       add  $1, $0, $2   # Current = Next
