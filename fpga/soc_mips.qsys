@@ -225,16 +225,6 @@
    internal="pio_6.external_connection"
    type="conduit"
    dir="end" />
- <interface
-   name="hps_0_h2f_mpu_events"
-   internal="hps_0.h2f_mpu_events"
-   type="conduit"
-   dir="end" />
- <interface
-   name="hps_0_h2f_reset"
-   internal="hps_0.h2f_reset"
-   type="reset"
-   dir="start" />
  <interface name="hps_io" internal="hps_0.hps_io" type="conduit" dir="end" />
  <interface
    name="instruction_memory_clk"

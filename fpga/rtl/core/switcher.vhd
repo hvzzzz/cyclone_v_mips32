@@ -3,17 +3,19 @@ use IEEE.std_logic_1164.all;
 
 entity switcher is
   port(
-    clk            : in  std_logic;
-    reset          : in  std_logic;
-    button         : in  std_logic;
-    manual_en      : in  std_logic;
-    ctrl_reg_write : in  std_logic;
-    ctrl_mem_write : in  std_logic_vector(3 downto 0);
-    pc_en          : out std_logic;
-    reg_write      : out std_logic;
-    dmem_write     : out std_logic;
-    cycle_out      : out std_logic_vector(1 downto 0);
-    dmem_byteen    : out std_logic_vector(3 downto 0)
+    clk                 : in  std_logic;
+    reset               : in  std_logic;
+    button              : in  std_logic;
+    manual_en           : in  std_logic;
+    ctrl_reg_write      : in  std_logic;
+    ctrl_mem_write      : in  std_logic_vector(3 downto 0);
+    pc_en               : out std_logic;
+    reg_write           : out std_logic;
+    dmem_write          : out std_logic;
+    fetch_indicator     : out std_logic;
+    execute_indicator   : out std_logic;
+    writeback_indicator : out std_logic;
+    dmem_byteen         : out std_logic_vector(3 downto 0)
     );
 end switcher;
 
@@ -57,6 +59,8 @@ begin
 
       dmem_write  <= '1'            when (ctrl_mem_write = "1111" and cycle_state = "01" and step_pulse = '1') else '0';
       dmem_byteen <= ctrl_mem_write when cycle_state = "01"                                                    else "0000";
-      cycle_out <= cycle_state;
 
+      fetch_indicator <= '1' when cycle_state = "00" else '0';
+      execute_indicator <= '1' when cycle_state = "01" else '0';
+      writeback_indicator <= '1' when cycle_state = "10" else '0';
     end env_switcher;

@@ -2,7 +2,7 @@
       addi $2, $0, 1    # $2 = 1  (Next Fib)
       add  $3, $0, $0   # $3 = 0  (Memory Address Pointer)
       addi $6, $0, 0    # $6 = 0  (Initialization of the counter)
-      addi $4, $0, 49   # (Loop Limit)
+      addi $4, $0, 48   # (Loop Limit)
 
 loop: beq  $6, $4, 7    # If Pointer == $4, jump forward 7 instructions to 'exit'
       sw   $1, 0($3)    # Store Current Fib to Data Memory

@@ -11,8 +11,7 @@
    <name preferredWidth="169" />
   </columns>
  </systemtable>
- <library
-   expandedCategories="Project,Library,Library/Processors and Peripherals,Library/Interface Protocols,Library/Interface Protocols/PCI Express/QSYS Example Designs,Library/Interface Protocols/PCI Express,Library/Processors and Peripherals/Peripherals" />
+ <library expandedCategories="Project,Library" />
  <window width="1670" height="861" x="0" y="13" />
  <generation simulation="VHDL" synthesis="VHDL" />
 </preferences>

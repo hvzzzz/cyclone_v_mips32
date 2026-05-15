@@ -1,26 +1,30 @@
 # # File gsaved with Nlview version 6.3.8  2013-12-19 bk=1.2992 VDI=34 GEI=35
 # 
+preplace inst soc_mips.pio_3 -pg 1 -lvl 3 -y 280
 preplace inst soc_mips.hps_0.i2c1 -pg 1
 preplace inst soc_mips.hps_0.wd_timer1 -pg 1
 preplace inst soc_mips.hps_0.fpgamgr -pg 1
 preplace inst soc_mips.hps_0.hps_io.border -pg 1
+preplace inst soc_mips.pio_4 -pg 1 -lvl 3 -y 520
 preplace inst soc_mips.hps_0.i2c2 -pg 1
 preplace inst soc_mips.hps_0.timer0 -pg 1
 preplace inst soc_mips.hps_0.rstmgr -pg 1
 preplace inst soc_mips.hps_0.arm_gic_0 -pg 1
 preplace inst soc_mips.hps_0.f2s_sdram_ref_clk -pg 1
 preplace inst soc_mips.hps_0.hps_io -pg 1
+preplace inst soc_mips.pio_5 -pg 1 -lvl 3 -y 840
 preplace inst soc_mips.hps_0.spim0 -pg 1
 preplace inst soc_mips.hps_0.i2c3 -pg 1
 preplace inst soc_mips.hps_0.timer1 -pg 1
 preplace inst soc_mips.hps_0.sysmgr -pg 1
 preplace inst soc_mips.hps_0.f2s_periph_ref_clk -pg 1
+preplace inst soc_mips.pio_6 -pg 1 -lvl 3 -y 740
 preplace inst soc_mips.hps_0.timer -pg 1
 preplace inst soc_mips.hps_0.gmac0 -pg 1
 preplace inst soc_mips.hps_0.spim1 -pg 1
 preplace inst soc_mips.hps_0.timer2 -pg 1
 preplace inst soc_mips.hps_0.uart0 -pg 1
-preplace inst soc_mips.onchip_memory2_0 -pg 1 -lvl 3 -y 120
+preplace inst soc_mips.onchip_memory2_0 -pg 1 -lvl 3 -y 30
 preplace inst soc_mips.hps_0.gmac1 -pg 1
 preplace inst soc_mips.hps_0.gpio0 -pg 1
 preplace inst soc_mips.hps_0.timer3 -pg 1
@@ -34,7 +38,7 @@ preplace inst soc_mips.hps_0.gpio2 -pg 1
 preplace inst soc_mips.hps_0.usb0 -pg 1
 preplace inst soc_mips.hps_0.clkmgr -pg 1
 preplace inst soc_mips.hps_0.arm_a9_0 -pg 1
-preplace inst soc_mips.hps_0 -pg 1 -lvl 2 -y 490
+preplace inst soc_mips.hps_0 -pg 1 -lvl 2 -y 530
 preplace inst soc_mips -pg 1 -lvl 1 -y 40 -regy -20
 preplace inst soc_mips.hps_0.usb1 -pg 1
 preplace inst soc_mips.hps_0.nand0 -pg 1
@@ -46,33 +50,33 @@ preplace inst soc_mips.hps_0.sdmmc -pg 1
 preplace inst soc_mips.hps_0.eosc2 -pg 1
 preplace inst soc_mips.hps_0.clk_0 -pg 1
 preplace inst soc_mips.hps_0.fpga_interfaces -pg 1
-preplace inst soc_mips.pio_0 -pg 1 -lvl 2 -y 120
 preplace inst soc_mips.hps_0.scu -pg 1
 preplace inst soc_mips.hps_0.axi_sdram -pg 1
 preplace inst soc_mips.hps_0.axi_ocram -pg 1
 preplace inst soc_mips.hps_0.dcan0 -pg 1
 preplace inst soc_mips.hps_0.L2 -pg 1
 preplace inst soc_mips.clk_0 -pg 1 -lvl 1 -y 240
-preplace inst soc_mips.pio_1 -pg 1 -lvl 2 -y 280
+preplace inst soc_mips.pio_1 -pg 1 -lvl 2 -y 250
 preplace inst soc_mips.hps_0.dcan1 -pg 1
+preplace inst soc_mips.pio_2 -pg 1 -lvl 3 -y 170
 preplace inst soc_mips.hps_0.i2c0 -pg 1
 preplace inst soc_mips.hps_0.wd_timer0 -pg 1
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)pio_1.external_connection,(SLAVE)soc_mips.mips_status) 1 0 2 NJ 310 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(MASTER)hps_0.h2f_reset,(MASTER)soc_mips.hps_0_h2f_reset) 1 2 2 NJ 600 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)hps_0.h2f_mpu_events,(SLAVE)soc_mips.hps_0_h2f_mpu_events) 1 0 2 NJ 640 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.fifo_counter,(SLAVE)pio_5.external_connection) 1 0 3 NJ 870 NJ 870 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)pio_3.external_connection,(SLAVE)soc_mips.fifo_1) 1 0 3 NJ 360 NJ 360 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
 preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.data_memory_clk,(SLAVE)onchip_memory2_1.clk2) 1 0 3 NJ 410 NJ 410 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)clk_0.clk_in,(SLAVE)soc_mips.clk) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.instruction_memory_s2,(SLAVE)onchip_memory2_0.s2) 1 0 3 NJ 230 NJ 230 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.reset2,(SLAVE)soc_mips.instruction_memory_rst) 1 0 3 NJ 100 NJ 70 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.instruction_memory_s2,(SLAVE)onchip_memory2_0.s2) 1 0 3 NJ 140 NJ 140 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.reset2,(SLAVE)soc_mips.instruction_memory_rst) 1 0 3 NJ 100 NJ 100 NJ
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_4.reset,(SLAVE)pio_6.reset,(SLAVE)pio_1.reset,(SLAVE)onchip_memory2_1.reset1,(SLAVE)onchip_memory2_0.reset1,(SLAVE)pio_2.reset,(SLAVE)pio_3.reset,(SLAVE)pio_5.reset,(MASTER)clk_0.clk_reset) 1 1 2 380 240 830
 preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_1.s2,(SLAVE)soc_mips.data_memory_s2) 1 0 3 NJ 450 NJ 450 NJ
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.reset1,(SLAVE)pio_0.reset,(SLAVE)onchip_memory2_1.reset1,(MASTER)clk_0.clk_reset,(SLAVE)pio_1.reset) 1 1 2 380 90 790
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)soc_mips.reset) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.pio_leds,(SLAVE)pio_0.external_connection) 1 0 2 NJ 150 NJ
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_0.s1,(SLAVE)onchip_memory2_1.s1,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)pio_1.s1,(SLAVE)onchip_memory2_0.s1) 1 1 2 420 110 750
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)hps_0.memory,(SLAVE)soc_mips.memory) 1 0 2 NJ 660 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.instruction_memory_clk,(SLAVE)onchip_memory2_0.clk2) 1 0 3 NJ 40 NJ 40 NJ
-preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.hps_io,(SLAVE)hps_0.hps_io) 1 0 2 NJ 580 NJ
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(MASTER)clk_0.clk,(SLAVE)onchip_memory2_0.clk1,(SLAVE)pio_6.clk,(SLAVE)pio_3.clk,(SLAVE)hps_0.h2f_axi_clock,(SLAVE)pio_4.clk,(SLAVE)pio_1.clk,(SLAVE)pio_5.clk,(SLAVE)pio_2.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)onchip_memory2_1.clk1,(SLAVE)hps_0.f2h_sdram0_clock,(SLAVE)hps_0.h2f_lw_axi_clock) 1 1 2 360 490 750
+preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_1.s1,(SLAVE)onchip_memory2_0.s1,(SLAVE)onchip_memory2_1.s1,(SLAVE)pio_2.s1,(SLAVE)pio_4.s1,(SLAVE)pio_3.s1,(SLAVE)pio_5.s1,(SLAVE)pio_6.s1,(MASTER)hps_0.h2f_lw_axi_master) 1 1 2 420 220 790
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.fifo_0,(SLAVE)pio_2.external_connection) 1 0 3 NJ 200 NJ 200 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)pio_4.external_connection,(SLAVE)soc_mips.fifo_2) 1 0 3 NJ 470 NJ 470 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.clk,(SLAVE)clk_0.clk_in) 1 0 1 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.mips_status,(SLAVE)pio_1.external_connection) 1 0 2 NJ 310 NJ
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)onchip_memory2_0.clk2,(SLAVE)soc_mips.instruction_memory_clk) 1 0 3 NJ 60 NJ 60 NJ
 preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.data_memory_rst,(SLAVE)onchip_memory2_1.reset2) 1 0 3 NJ 430 NJ 430 NJ
-preplace netloc FAN_OUT<net_container>soc_mips</net_container>(SLAVE)pio_0.clk,(SLAVE)hps_0.h2f_axi_clock,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)pio_1.clk,(MASTER)clk_0.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)onchip_memory2_0.clk1,(SLAVE)onchip_memory2_1.clk1,(SLAVE)hps_0.f2h_sdram0_clock) 1 1 2 400 390 810
-levelinfo -pg 1 0 150 1140
-levelinfo -hier soc_mips 160 190 540 900 1010
+preplace netloc EXPORT<net_container>soc_mips</net_container>(SLAVE)soc_mips.fifo_valid,(SLAVE)pio_6.external_connection) 1 0 3 NJ 770 NJ 770 NJ
+levelinfo -pg 1 0 150 1060
+levelinfo -hier soc_mips 160 190 540 900 1050

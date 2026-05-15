@@ -10,10 +10,7 @@ entity mips_32 is
   port
     (
       ------------ CLOCK ------------ 
-      -- CLOCK2_50 : in std_logic;
-      -- CLOCK3_50 : in std_logic;
-      -- CLOCK4_50 : in std_logic;
-      CLOCK_50  : in std_logic;
+      CLOCK_50 : in std_logic;
 
       ------------ KEY ------------ 
       KEY : in std_logic_vector(3 downto 0);
@@ -34,64 +31,40 @@ entity mips_32 is
 
       ------------ HPS ------------ 
       -- HPS_CONV_USB_N    : inout std_logic;
-      HPS_DDR3_ADDR     : out   std_logic_vector(14 downto 0);
-      HPS_DDR3_BA       : out   std_logic_vector(2 downto 0);
-      HPS_DDR3_CAS_N    : out   std_logic;
-      HPS_DDR3_CKE      : out   std_logic;
-      HPS_DDR3_CK_N     : out   std_logic;
-      HPS_DDR3_CK_P     : out   std_logic;
-      HPS_DDR3_CS_N     : out   std_logic;
-      HPS_DDR3_DM       : out   std_logic_vector(3 downto 0);
-      HPS_DDR3_DQ       : inout std_logic_vector(31 downto 0);
-      HPS_DDR3_DQS_N    : inout std_logic_vector(3 downto 0);
-      HPS_DDR3_DQS_P    : inout std_logic_vector(3 downto 0);
-      HPS_DDR3_ODT      : out   std_logic;
-      HPS_DDR3_RAS_N    : out   std_logic;
-      HPS_DDR3_RESET_N  : out   std_logic;
-      HPS_DDR3_RZQ      : in    std_logic;
-      HPS_DDR3_WE_N     : out   std_logic;
-      HPS_ENET_GTX_CLK  : out   std_logic;
-      -- HPS_ENET_INT_N    : inout std_logic;
-      HPS_ENET_MDC      : out   std_logic;
-      HPS_ENET_MDIO     : inout std_logic;
-      HPS_ENET_RX_CLK   : in    std_logic;
-      HPS_ENET_RX_DATA  : in    std_logic_vector(3 downto 0);
-      HPS_ENET_RX_DV    : in    std_logic;
-      HPS_ENET_TX_DATA  : out   std_logic_vector(3 downto 0);
-      HPS_ENET_TX_EN    : out   std_logic;
-      -- HPS_FLASH_DATA    : inout std_logic_vector(3 downto 0);
-      -- HPS_FLASH_DCLK    : out   std_logic;
-      -- HPS_FLASH_NCSO    : out   std_logic;
-      -- HPS_GSENSOR_INT   : inout std_logic;
-      -- HPS_I2C1_SCLK     : inout std_logic;
-      -- HPS_I2C1_SDAT     : inout std_logic;
-      -- HPS_I2C2_SCLK     : inout std_logic;
-      -- HPS_I2C2_SDAT     : inout std_logic;
-      -- HPS_I2C_CONTROL   : inout std_logic;
-      -- HPS_KEY           : inout std_logic;
-      -- HPS_LCM_BK        : inout std_logic;
-      -- HPS_LCM_D_C       : inout std_logic;
-      -- HPS_LCM_RST_N     : inout std_logic;
-      -- HPS_LCM_SPIM_CLK  : out   std_logic;
-      -- HPS_LCM_SPIM_MISO : in    std_logic;
-      -- HPS_LCM_SPIM_MOSI : out   std_logic;
-      -- HPS_LCM_SPIM_SS   : out   std_logic;
-      -- HPS_LED           : inout std_logic;
-      -- HPS_LTC_GPIO      : inout std_logic;
-      HPS_SD_CLK        : out   std_logic;
-      HPS_SD_CMD        : inout std_logic;
-      HPS_SD_DATA       : inout std_logic_vector(3 downto 0);
-      -- HPS_SPIM_CLK      : out   std_logic;
-      -- HPS_SPIM_MISO     : in    std_logic;
-      -- HPS_SPIM_MOSI     : out   std_logic;
-      -- HPS_SPIM_SS       : out   std_logic;
-      HPS_UART_RX       : in    std_logic;
-      HPS_UART_TX       : out   std_logic;
-      HPS_USB_CLKOUT    : in    std_logic;
-      HPS_USB_DATA      : inout std_logic_vector(7 downto 0);
-      HPS_USB_DIR       : in    std_logic;
-      HPS_USB_NXT       : in    std_logic;
-      HPS_USB_STP       : out   std_logic
+      HPS_DDR3_ADDR    : out   std_logic_vector(14 downto 0);
+      HPS_DDR3_BA      : out   std_logic_vector(2 downto 0);
+      HPS_DDR3_CAS_N   : out   std_logic;
+      HPS_DDR3_CKE     : out   std_logic;
+      HPS_DDR3_CK_N    : out   std_logic;
+      HPS_DDR3_CK_P    : out   std_logic;
+      HPS_DDR3_CS_N    : out   std_logic;
+      HPS_DDR3_DM      : out   std_logic_vector(3 downto 0);
+      HPS_DDR3_DQ      : inout std_logic_vector(31 downto 0);
+      HPS_DDR3_DQS_N   : inout std_logic_vector(3 downto 0);
+      HPS_DDR3_DQS_P   : inout std_logic_vector(3 downto 0);
+      HPS_DDR3_ODT     : out   std_logic;
+      HPS_DDR3_RAS_N   : out   std_logic;
+      HPS_DDR3_RESET_N : out   std_logic;
+      HPS_DDR3_RZQ     : in    std_logic;
+      HPS_DDR3_WE_N    : out   std_logic;
+      HPS_ENET_GTX_CLK : out   std_logic;
+      HPS_ENET_MDC     : out   std_logic;
+      HPS_ENET_MDIO    : inout std_logic;
+      HPS_ENET_RX_CLK  : in    std_logic;
+      HPS_ENET_RX_DATA : in    std_logic_vector(3 downto 0);
+      HPS_ENET_RX_DV   : in    std_logic;
+      HPS_ENET_TX_DATA : out   std_logic_vector(3 downto 0);
+      HPS_ENET_TX_EN   : out   std_logic;
+      HPS_SD_CLK       : out   std_logic;
+      HPS_SD_CMD       : inout std_logic;
+      HPS_SD_DATA      : inout std_logic_vector(3 downto 0);
+      HPS_UART_RX      : in    std_logic;
+      HPS_UART_TX      : out   std_logic;
+      HPS_USB_CLKOUT   : in    std_logic;
+      HPS_USB_DATA     : inout std_logic_vector(7 downto 0);
+      HPS_USB_DIR      : in    std_logic;
+      HPS_USB_NXT      : in    std_logic;
+      HPS_USB_STP      : out   std_logic
       );
 end entity;
 
@@ -103,10 +76,7 @@ architecture rtl of mips_32 is
 
   constant pc_offset : std_logic_vector (31 downto 0) := x"00000004";
 
-  -- signal hps_to_fpga_signal : std_logic_vector(31 downto 0);
--- Instruction Memory Interface (Read-Only)
-  -- signal imem_address       : std_logic_vector(9 downto 0);
-  signal imem_readdata      : std_logic_vector(31 downto 0);
+  signal imem_readdata : std_logic_vector(31 downto 0);
 
   -- Data Memory Interface (Read/Write)
   signal dmem_address  : std_logic_vector(31 downto 0);
@@ -144,37 +114,11 @@ architecture rtl of mips_32 is
   signal ctrl_mem_write : std_logic_vector(3 downto 0);
   signal pc_src         : std_logic;
 
-  signal fifo_0 : std_logic_vector(31 downto 0);
-  signal fifo_1 : std_logic_vector(31 downto 0);
-  signal fifo_2 : std_logic_vector(31 downto 0);
-  signal fifo_valid : std_logic_vector(2 downto 0);
+  signal fifo_0              : std_logic_vector(31 downto 0);
+  signal fifo_1              : std_logic_vector(31 downto 0);
+  signal fifo_2              : std_logic_vector(31 downto 0);
+  signal fifo_valid          : std_logic_vector(2 downto 0);
   signal fifo_update_counter : std_logic_vector(31 downto 0);
-  signal stage: std_logic_vector(1 downto 0);
-
-  function bits_2_display7(bits : in std_logic_vector(3 downto 0))
-    return std_logic_vector is variable display7 : std_logic_vector(6 downto 0);
-  begin
-    case bits is
-      when "0000" => display7 := "1000000";  -- 0
-      when "0001" => display7 := "1111001";  -- 1
-      when "0010" => display7 := "0100100";  -- 2
-      when "0011" => display7 := "0110000";  -- 3
-      when "0100" => display7 := "0011001";  -- 4
-      when "0101" => display7 := "0010010";  -- 5
-      when "0110" => display7 := "0000010";  -- 6
-      when "0111" => display7 := "1111000";  -- 7
-      when "1000" => display7 := "0000000";  -- 8
-      when "1001" => display7 := "0010000";  -- 9
-      when "1010" => display7 := "0001000";  -- A
-      when "1011" => display7 := "0000011";  -- b
-      when "1100" => display7 := "1000110";  -- C
-      when "1101" => display7 := "0100001";  -- d
-      when "1110" => display7 := "0000110";  -- E
-      when "1111" => display7 := "0001110";  -- F
-      when others => display7 := "1111111";  -- blank
-    end case;
-    return display7;
-  end;
 
   component pc is
     port (
@@ -282,18 +226,21 @@ architecture rtl of mips_32 is
 
   component switcher is
     port(
-      clk            : in  std_logic;
-      reset          : in  std_logic;
-      button         : in  std_logic;
-      manual_en      : in  std_logic;
-      ctrl_reg_write : in  std_logic;
-      ctrl_mem_write : in  std_logic_vector(3 downto 0);
-      pc_en          : out std_logic;
-      reg_write      : out std_logic;
-      dmem_write     : out std_logic;
-      cycle_out      : out std_logic_vector(1 downto 0);
-      dmem_byteen    : out std_logic_vector(3 downto 0)
+      clk                 : in  std_logic;
+      reset               : in  std_logic;
+      button              : in  std_logic;
+      manual_en           : in  std_logic;
+      ctrl_reg_write      : in  std_logic;
+      ctrl_mem_write      : in  std_logic_vector(3 downto 0);
+      pc_en               : out std_logic;
+      reg_write           : out std_logic;
+      dmem_write          : out std_logic;
+      fetch_indicator     : out std_logic;
+      execute_indicator   : out std_logic;
+      writeback_indicator : out std_logic;
+      dmem_byteen         : out std_logic_vector(3 downto 0)
       );
+
   end component;
 
   component fifo is
@@ -302,6 +249,12 @@ architecture rtl of mips_32 is
       reset               : in  std_logic;
       dmem_write          : in  std_logic;
       r2_data_o           : in  std_logic_vector(31 downto 0);
+      fifo_hex0           : out std_logic_vector(6 downto 0);
+      fifo_hex1           : out std_logic_vector(6 downto 0);
+      fifo_hex2           : out std_logic_vector(6 downto 0);
+      fifo_hex3           : out std_logic_vector(6 downto 0);
+      fifo_hex4           : out std_logic_vector(6 downto 0);
+      fifo_hex5           : out std_logic_vector(6 downto 0);
       fifo_0              : out std_logic_vector(31 downto 0);
       fifo_1              : out std_logic_vector(31 downto 0);
       fifo_2              : out std_logic_vector(31 downto 0);
@@ -316,15 +269,6 @@ architecture rtl of mips_32 is
       -- Clock and Reset
       clk_clk       : in std_logic := 'X';
       reset_reset_n : in std_logic := 'X';
-
-      -- HPS to FPGA Reset
-      hps_0_h2f_reset_reset_n : out std_logic;
-
-      -- MPU Events
-      hps_0_h2f_mpu_events_eventi     : in  std_logic := 'X';
-      hps_0_h2f_mpu_events_evento     : out std_logic;
-      hps_0_h2f_mpu_events_standbywfe : out std_logic_vector(1 downto 0);
-      hps_0_h2f_mpu_events_standbywfi : out std_logic_vector(1 downto 0);
 
       -- HPS DDR3 Memory
       memory_mem_a       : out   std_logic_vector(14 downto 0);
@@ -402,14 +346,13 @@ architecture rtl of mips_32 is
       data_memory_s2_writedata  : in  std_logic_vector(31 downto 0) := (others => 'X');  -- writedata
       data_memory_s2_byteenable : in  std_logic_vector(3 downto 0)  := (others => 'X');  -- byteenable
 
-      mips_status_export               : in std_logic_vector(31 downto 0) := (others => 'X');  -- export
-      fifo_0_export                    : in    std_logic_vector(31 downto 0) := (others => '0'); --                 fifo_0.export
-      fifo_1_export                    : in    std_logic_vector(31 downto 0) := (others => '0'); --                 fifo_1.export
-      fifo_2_export                    : in    std_logic_vector(31 downto 0) := (others => '0'); --                 fifo_2.export
-      fifo_counter_export              : in    std_logic_vector(31 downto 0) := (others => '0'); --           fifo_counter.export
-      fifo_valid_export                : in    std_logic_vector(2 downto 0)  := (others => '0') --             fifo_valid.export
+      mips_status_export  : in std_logic_vector(31 downto 0) := (others => 'X');  -- export
+      fifo_0_export       : in std_logic_vector(31 downto 0) := (others => '0');  --                 fifo_0.export
+      fifo_1_export       : in std_logic_vector(31 downto 0) := (others => '0');  --                 fifo_1.export
+      fifo_2_export       : in std_logic_vector(31 downto 0) := (others => '0');  --                 fifo_2.export
+      fifo_counter_export : in std_logic_vector(31 downto 0) := (others => '0');  --           fifo_counter.export
+      fifo_valid_export   : in std_logic_vector(2 downto 0)  := (others => '0')  --             fifo_valid.export
 
-     -- pio_leds_export    : in std_logic_vector(31 downto 0) := (others => 'X')  -- export
       );
   end component soc_mips;
 
@@ -419,16 +362,7 @@ begin
     port map (
       -- Clock and Resets 
       clk_clk       => CLOCK_50,
-      -- reset_reset_n           => KEY(0),
       reset_reset_n => '1',
-
-      hps_0_h2f_reset_reset_n => open,
-
-      -- MPU Events 
-      hps_0_h2f_mpu_events_eventi     => '0',
-      hps_0_h2f_mpu_events_evento     => open,
-      hps_0_h2f_mpu_events_standbywfe => open,
-      hps_0_h2f_mpu_events_standbywfi => open,
 
       -- HPS DDR3 Memory 
       memory_mem_a       => HPS_DDR3_ADDR,
@@ -514,16 +448,14 @@ begin
       data_memory_s2_writedata  => r2_data_o,
       data_memory_s2_byteenable => dmem_byteen,
 
-      fifo_0_export => fifo_0,
-      fifo_1_export=>fifo_1,
-      fifo_2_export=>fifo_2,
-      fifo_counter_export=>fifo_update_counter,
-      fifo_valid_export=>fifo_valid,
+      fifo_0_export       => fifo_0,
+      fifo_1_export       => fifo_1,
+      fifo_2_export       => fifo_2,
+      fifo_counter_export => fifo_update_counter,
+      fifo_valid_export   => fifo_valid,
 
       -- FPGA Custom Fabric Bridges 
-      -- pio_leds_export (9 downto 0)   => dmem_address(11 downto 2),
-      -- pio_leds_export (13 downto 10) => dmem_byteen,
-      mips_status_export             => current_pc);
+      mips_status_export => current_pc);
 
   pc_mips : pc
     port map(
@@ -642,59 +574,37 @@ begin
       pc_en          => pc_en,
       reg_write      => reg_write,
       dmem_write     => dmem_write,
-      cycle_out =>  stage,
+      fetch_indicator => LEDR(9),
+      execute_indicator => LEDR(8),
+      writeback_indicator => LEDR(7),
       dmem_byteen    => dmem_byteen
       );
 
-  mips_fifo: fifo
+  mips_fifo : fifo
     port map(
-      clk => CLOCK_50,
-      reset => SW(0),
-      dmem_write => dmem_write,
-      r2_data_o => r2_data_o,
-      fifo_0 => fifo_0,
-      fifo_1 => fifo_1,
-      fifo_2 => fifo_2,
-      fifo_valid => fifo_valid,
+      clk                 => CLOCK_50,
+      reset               => SW(0),
+      dmem_write          => dmem_write,
+      r2_data_o           => r2_data_o,
+      fifo_hex0           => HEX0,
+      fifo_hex1           => HEX1,
+      fifo_hex2           => HEX2,
+      fifo_hex3           => HEX3,
+      fifo_hex4           => HEX4,
+      fifo_hex5           => HEX5,
+      fifo_0              => fifo_0,
+      fifo_1              => fifo_1,
+      fifo_2              => fifo_2,
+      fifo_valid          => fifo_valid,
       fifo_update_counter => fifo_update_counter
       );
-
-  HEX0 <= bits_2_display7(fifo_0(3 downto 0));
-  HEX1 <= bits_2_display7(fifo_0(7 downto 4));
-  HEX2 <= bits_2_display7(fifo_1(3 downto 0));
-  HEX3 <= bits_2_display7(fifo_1(7 downto 4));
-  HEX4 <= bits_2_display7(fifo_2(3 downto 0));
-  HEX5 <= bits_2_display7(fifo_2(7 downto 4));
-
-  LEDR(9) <= '1' when stage = "00" else '0';
-  LEDR(8) <= '1' when stage = "01" else '0';
-  LEDR(7) <= '1' when stage = "10" else '0';
 
   LEDR(6) <= ctrl_reg_write;
   LEDR(5) <= ctrl_mem_write(0);
   LEDR(4) <= mem_read;
-  LEDR(3) <=branch;
-  LEDR(2) <=alu_zero;
-  LEDR(1) <=alu_src;
+  LEDR(3) <= branch;
+  LEDR(2) <= alu_zero;
+  LEDR(1) <= alu_src;
   LEDR(0) <= dmem_byteen(0);
-
-  -- HEX0 <=bits_2_display7(imem_readdata(3 downto 0));
-  -- HEX1 <=bits_2_display7(imem_readdata(7 downto 4));
-  -- HEX2 <=bits_2_display7(imem_readdata(11 downto 8));
-  -- HEX3 <=bits_2_display7(imem_readdata(15 downto 12));
-
-  -- HEX0 <= bits_2_display7(dmem_address(5 downto 2));
-  -- HEX1 <= bits_2_display7(dmem_address(9 downto 6));
-  -- HEX2 <= bits_2_display7(r2_data_o(3 downto 0));
-  -- HEX3 <= bits_2_display7(r2_data_o(7 downto 4));
-  -- HEX4 <= bits_2_display7(current_pc(3 downto 0));
-  -- HEX5 <= bits_2_display7(current_pc(7 downto 4));
-
-  -- HEX0 <= bits_2_display7(r2_data_o(3 downto 0));
-  -- HEX1 <= bits_2_display7(r2_data_o(7 downto 4));
-  -- HEX2 <= bits_2_display7(r2_data_o(11 downto 8));
-  -- HEX3 <= bits_2_display7(r2_data_o(15 downto 12));
-  -- HEX4 <= bits_2_display7(r2_data_o(19 downto 16));
-  -- HEX5 <= bits_2_display7(r2_data_o(23 downto 20));
 
 end rtl;
