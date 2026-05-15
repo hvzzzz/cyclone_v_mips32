@@ -69,6 +69,6 @@ flasher_run:
 	$(MAKE) -C software/flasher run
 
 flasher_all:
-	cd scripts && python3 assembler.py fibo.asm > program.hex
+	cd scripts && python3 assembler.py isa.asm > program.hex
 	$(MAKE) -C software/flasher deploy
 	$(MAKE) -C software/flasher run

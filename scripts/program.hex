@@ -1,14 +1,20 @@
-00000820 // add $1, $0, $0 # $1 = 0 (Current Fib)
-20020001 // addi $2, $0, 1 # $2 = 1 (Next Fib)
-00001820 // add $3, $0, $0 # $3 = 0 (Memory Address Pointer)
-20060000 // addi $6, $0, 0 # $6 = 0 (Initialization of the counter)
-20040030 // addi $4, $0, 48 # (Loop Limit)
-10C40007 // loop: beq $6, $4, 7 # If Pointer == $4, jump forward 7 instructions to 'exit'
-AC610000 // sw $1, 0($3) # Store Current Fib to Data Memory
-00222820 // add $5, $1, $2 # Temp = Current + Next
-00020820 // add $1, $0, $2 # Current = Next
-00051020 // add $2, $0, $5 # Next = Temp
-20630004 // addi $3, $3, 4 # Pointer = Pointer + 4
-20C60001 // addi $6, $6, 1 # Counter = Counter +1
-1000FFF8 // beq $0, $0, -8 # Unconditional jump backward 8 instructions to 'loop'
-1000FFFF // exit: beq $0, $0, -1 # Infinite trap
+00000020 // add $0, $0, $0 # zero value
+00002020 // add $4, $0, $0 # memory pointer
+20010005 // addi $1, $0, 5 # store 5 in register 1
+2002003C // addi $2, $0, 60 # store 60 in register 2
+00221820 // add $3, $1, $2 # register 3 = $1+$2
+00412822 // sub $5, $2, $1 # register 5 = $2-$1
+AC830000 // sw $3, 0($4) # save register 3 in data memory
+20840004 // addi $4, $4, 4
+AC850000 // sw $5, 0($4) # save register 5 in data memory
+0065382A // slt $7, $3, $5
+00A3402A // slt $8, $5, $3
+AC870000 // sw $7, 0($4)
+20840004 // addi $4, $4, 4
+AC880000 // sw $8, 0($4)
+20840004 // addi $4, $4, 4
+2084FFF4 // addi $4,$4, -12
+8C860000 // lw $6, 0($4) # read from data memory to register 6
+20C6001E // addi $6,$6,30 # add 30 to saved data
+AC860000 // sw $6, 0($4) # store result
+1000FFFF // beq $0, $0, -1 # end
