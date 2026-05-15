@@ -678,9 +678,6 @@ begin
   LEDR(1) <=alu_src;
   LEDR(0) <= dmem_byteen(0);
 
-
-
-
   -- HEX0 <=bits_2_display7(imem_readdata(3 downto 0));
   -- HEX1 <=bits_2_display7(imem_readdata(7 downto 4));
   -- HEX2 <=bits_2_display7(imem_readdata(11 downto 8));
