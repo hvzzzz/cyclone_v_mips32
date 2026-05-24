@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{+w}{   }python3\PYG{+w}{ }scripts/assembler.py\PYG{+w}{ }scripts/fibo.asm\PYG{+w}{ }\PYGZhy{}o\PYG{+w}{ }scripts/program.hex
+\end{Verbatim}
