@@ -4,7 +4,7 @@
 #+latex: \newpage
 * Project overview
 
-This report presents the implementation of a MIPS32-style soft processor on Terasic's DE10-Standard Development Kit. The design supports a subset of the MIPS instruction set architecture composed of /add, sub, and, or, slt, lw, sw, addi,/ and /beq/, and its initial organization is derived from the single-cycle processor described in [[citet:&john_l_hennessy_computer_2013]].
+This report presents the implementation of a MIPS32-style soft processor on Terasic's DE10-Standard Development Kit. The design supports a subset of the MIPS instruction set architecture composed of /add, sub, and, or, slt, lw, sw, addi,/ and /beq/, and its initial organization is derived from the single-cycle processor described by [[citet:&john_l_hennessy_computer_2013]].
 
 The hardware platform is based on an Intel Cyclone V SoC, device /5CSXFC6D6F31C6/, clocked from the board's /50 MHz/ oscillator. In addition to the FPGA fabric, the board includes an ARM-based Hard Processor System (HPS) running embedded Linux. In this project, the HPS is used as a host-side service processor: it loads programs into the instruction memory, reads back processor state through the lightweight HPS-to-FPGA AXI bridge, and drives the on-board $128 \times 64$ LCD monitor used for runtime observation.
 
@@ -13,7 +13,7 @@ The implemented processor uses a /32-bit/ datapath, a $32 \times 32$ bit registe
 #+attr_org: :width 600
 #+caption: General Block Diagram
 #+name: fig:general_schema
-#+attr_latex: :width 16.0cm :options angle=0
+#+attr_latex: :width 17.0cm :options angle=0
 [[./images/block_diagram.png]]
 
 * Project specification
@@ -99,7 +99,7 @@ In I-type instructions, the 16-bit immediate field replaces the /rd/, /shamt/, a
 
 ** Host interface and observability
 
-The processor is coupled to the HPS through the lightweight HPS-to-FPGA AXI bridge. In the implemented system, the bridge base address is /0xFF200000/ and the software utilities use a mapped span of /0x00200000/. This interface allows the HPS to access the processor memories and exported status registers directly from Linux user space through /open("/dev/mem")/ and /mmap()/.
+The processor is coupled to the HPS through the lightweight HPS-to-FPGA AXI bridge. In the implemented system, the bridge base address is \texttt{0xFF200000} and the software utilities use a mapped span of \texttt{0x00200000}. This interface allows the HPS to access the processor memories and exported status registers directly from Linux user space through /open("/dev/mem")/ and /mmap()/ [[cite:&terasic_technologies_de10-standard_2018]].
 
 In addition to the software-visible registers, the project uses the board peripherals as direct debug interfaces. The six seven-segment displays show the three most recent values written to data memory, the LEDs expose internal control and execution states, and the LCD monitor shows the current program counter and nearby instructions in real time. Manual stepping is enabled with /SW(9)/ and triggered with /KEY(0)/.
 
@@ -122,9 +122,59 @@ The memory-mapped addresses used by the current demonstrator are summarized in t
 
 * Development tools and techniques
 
-The project followed a bottom-up roadmap consistent with the milestones defined during the project follow-up meeting. The work started with HPS-FPGA communication through the AXI bridge, continued with the design and simulation of the elementary processor blocks, then moved to datapath and memory integration, and finally reached board-level validation with assembly programs, LCD monitoring, and HPS-side debug tools. From a project-management perspective, this progression can be summarized in four phases: specification and component design, datapath integration, memory and board implementation, and final validation.
+The project followed a bottom-up roadmap consistent with the milestones defined during the project follow-up meeting. This was a solo project completed over a /10-week/ period from /March 20/ to /May 25, 2026/. The work started with HPS-FPGA communication through the AXI bridge, continued with the design and simulation of the elementary processor blocks, then moved to datapath and memory integration, and finally reached board-level validation with assembly programs, LCD monitoring, and HPS-side debug tools. From a project-management perspective, this progression can be summarized in four phases: specification and component design, datapath integration, memory and board implementation, and final validation.
 
 This methodology also structured the technical workflow. First, each functional block was validated independently in simulation. Next, the validated blocks were assembled into a complete datapath and connected to the Platform Designer memories and bridge interfaces. Finally, the integrated system was exercised on the board with software tools for program generation, instruction-memory loading, and runtime observation.
+
+** Project timeline
+
+Table [[tab:timeline]] summarizes the major milestones and development phases throughout the project duration, as recorded in the version control history. The project spanned /10 weeks/ and progressed through four distinct phases.
+
+#+caption: Project timeline and major milestones
+#+label: tab:timeline
+|-----------+---------------------------------+---------------------------------------|
+| Date      | Phase                           | Key Accomplishments                   |
+|-----------+---------------------------------+---------------------------------------|
+| *March 20*  | *Phase 1: Infrastructure Setup*   | • HPS-FPGA AXI bridge validated       |
+| (Week 1)  |                                 | • Memory-mapped read/write confirmed  |
+|           |                                 | • Build automation (Makefiles) added  |
+|-----------+---------------------------------+---------------------------------------|
+| *March 27*  | *Phase 1: Component Design*       | • ALU designed and simulated          |
+| (Week 2)  |                                 | • ALU control unit implemented        |
+|           |                                 | • Project presentation prepared       |
+|-----------+---------------------------------+---------------------------------------|
+| *April 3*   | *Phase 1: Core Components*        | • Register file (32×32-bit) completed |
+| (Week 3)  |                                 | • Program counter with enable/reset   |
+|           |                                 | • Unit testbenches validated          |
+|-----------+---------------------------------+---------------------------------------|
+| *April 10*  | *Phase 2: Memory Integration*     | • BRAM blocks instantiated            |
+| (Week 4)  |                                 | • PC connected to instruction memory  |
+|           |                                 | • Main control decoder added          |
+|-----------+---------------------------------+---------------------------------------|
+| *April 17*  | *Phase 2: Datapath Assembly*      | • Complete datapath integrated        |
+| (Week 5)  |                                 | • All processor blocks wired          |
+|           |                                 | • Top-level structural design done    |
+|-----------+---------------------------------+---------------------------------------|
+| *April 24*  | *Phase 3: First Working System*   | • Processor executes on FPGA          |
+| (Week 6)  |                                 | • Initial instruction tests passed    |
+|           |                                 | • Hardware functionality confirmed    |
+|-----------+---------------------------------+---------------------------------------|
+| *May 2*     | *Phase 3: Execution Control*      | • Manual step-by-step mode added      |
+| (Week 7)  |                                 | • Free-run continuous mode added      |
+|           |                                 | • Switcher block with stage control   |
+|-----------+---------------------------------+---------------------------------------|
+| *May 4*     | *Phase 4: Demonstration Programs* | • Fibonacci sequence validated        |
+| (Week 8)  |                                 | • LCD monitor fully integrated        |
+|           |                                 | • HPS observation tools operational   |
+|-----------+---------------------------------+---------------------------------------|
+| *May 15*    | *Phase 4: Final Validation*       | • ISA test program developed          |
+| (Week 9)  |                                 | • Additional assembly tests added     |
+|           |                                 | • Pin assignments optimized           |
+|-----------+---------------------------------+---------------------------------------|
+
+# The timeline shows a systematic bottom-up progression. *Weeks 1-3* established the HPS-FPGA infrastructure and implemented core processor components with individual validation. *Weeks 4-5* focused on memory integration and complete datapath assembly. *Week 6* achieved the first working processor on hardware. *Weeks 7-9* added execution control features, developed demonstration programs, performed final validation, and completed the project.
+
+** Development toolchain and simulation infrastructure
 
 The HDL implementation was written in VHDL and synthesized with Intel Quartus Prime Lite /20.1.0 Build 711/. Platform Designer was used to generate the HPS subsystem, the lightweight AXI bridge interconnect, and the on-chip instruction and data memories. The automated hardware build is driven by the top-level /Makefile/, which calls \texttt{quartus\_sh -t build.tcl}, while FPGA configuration is performed through JTAG with \texttt{quartus\_pgm} using device index /2/.
 
@@ -153,7 +203,7 @@ The register file is implemented in /fpga/rtl/core/regist.vhd/ as an array of /3
 #+attr_org: :width 650
 #+caption: Register file implementation
 #+name: fig:register_block
-#+attr_latex: :width 13cm
+#+attr_latex: :width 11cm
 [[./images/register.png]]
 
 The implementation enforces the MIPS convention that register /$0/ is hardwired to zero. This is done in two places. First, both read processes explicitly return \texttt{0x00000000} whenever the requested read address is /00000/. Second, the write process blocks any write attempt whose destination address is /00000/. As a result, register /$0/ cannot be modified even if the control path erroneously asserts a write. Reads from the register bank are asynchronous with respect to the clock, which is consistent with the datapath requirement of obtaining operands during the execute phase, while writes occur only on the rising clock edge when /w_en_i/ is asserted.
@@ -168,7 +218,25 @@ The main control unit is implemented in \texttt{/fpga/rtl/core/main\_ctrl.vhd/} 
 #+attr_latex: :width 13cm
 [[./images/main_control_table.png]]
 
-The decoder currently distinguishes five opcode classes: R-type, /lw/, /sw/, /beq/, and /addi/. For example, the R-type opcode /000000/ activates /RegDst/, /RegWrite/, and the R-type /ALUOp/ code, while /lw/ activates /ALUSrc/, /MemtoReg/, /RegWrite/, and /MemRead/. The most specific implementation detail is the handling of the write enable for data memory. Rather than exposing a single-bit /MemWrite/, the design expands it into a /4-bit/ byte-enable bus. Whenever a store instruction is detected, the BRAM enable process drives /1111/, allowing a full /32-bit/ word write. This choice matches the byte-enable interface of the Platform Designer on-chip memory block.
+The decoder currently distinguishes five opcode classes: R-type, /lw/, /sw/, /beq/, and /addi/. The specific opcode assignments are summarized in table [[tab:opcodes]].
+
+#+caption: Opcode assignments for the implemented instruction subset
+#+label: tab:opcodes
+|-------------+--------------+-------------------|
+| Instruction | Opcode (bin) | Opcode (hex)      |
+|-------------+--------------+-------------------|
+| R-type      | 000000       | 0x00              |
+| lw          | 100011       | 0x23              |
+| sw          | 101011       | 0x2B              |
+| beq         | 000100       | 0x04              |
+| addi        | 001000       | 0x08              |
+|-------------+--------------+-------------------|
+
+The /addi/ instruction represents an extension beyond the reference single-cycle processor described in the Hennessy and Patterson textbook, which originally included only /add, sub, and, or, slt, lw, sw,/ and /beq/. The addition of /addi/ with opcode /001000/ (0x08) improves the processor's practical utility by allowing immediate-value arithmetic without requiring a separate load operation, which is particularly useful for loop counters, address calculations, and constant initialization in programs like the Fibonacci demonstration.
+
+For each opcode, the control decoder generates a /9-bit/ intermediate vector that is then mapped to individual control signals. For example, the R-type opcode /000000/ produces the vector /100100010/, which activates /RegDst/, /RegWrite/, and sets /ALUOp/ to /10/ for R-type decoding. The /lw/ instruction (opcode /100011/) produces /011110000/, which activates /ALUSrc/, /MemtoReg/, /RegWrite/, and /MemRead/. The /addi/ instruction (opcode /001000/) generates /010100000/, which activates /ALUSrc/ and /RegWrite/, allowing it to reuse the ALU addition path with the sign-extended immediate value as the second operand.
+
+The most specific implementation detail is the handling of the write enable for data memory. Rather than exposing a single-bit /MemWrite/, the design expands it into a /4-bit/ byte-enable bus. Whenever a store instruction is detected, the BRAM enable process drives /1111/, allowing a full /32-bit/ word write. This choice matches the byte-enable interface of the Platform Designer on-chip memory block.
 
 ** ALU and ALU control implementation
 
@@ -181,7 +249,7 @@ Figure [[fig:alu_table]] summarizes the control codes used to select the ALU fun
 #+attr_org: :width 650
 #+caption: ALU control truth table
 #+name: fig:alu_table
-#+attr_latex: :width 9cm
+#+attr_latex: :width 8cm
 [[./images/table_alu.png]]
 
 For the supported instructions, the effective ALU-control decoding can be summarized as follows:
@@ -240,7 +308,7 @@ The instruction and data memories are not handwritten in VHDL; they are generate
 #+attr_org: :width 650
 #+caption: Generated BRAM block used for on-chip memory
 #+name: fig:bram_block
-#+attr_latex: :width 10cm
+#+attr_latex: :width 9cm
 [[./images/bram.png]]
 
 The complete system-level integration is easier to understand with the Platform Designer view shown in figure [[fig:platform_designer_map]]. This figure makes the role of the HPS-to-FPGA bridge explicit: the HPS lightweight AXI master is connected inside Platform Designer to a set of Avalon-MM slave peripherals implemented in the FPGA fabric.
@@ -248,7 +316,7 @@ The complete system-level integration is easier to understand with the Platform 
 #+attr_org: :width 750
 #+caption: Platform Designer memory map and HPS-to-FPGA connections
 #+name: fig:platform_designer_map
-#+attr_latex: :width 17cm
+#+attr_latex: :width 15cm
 [[./images/platform_designer.png]]
 
 The key architectural point is that the two on-chip memories expose two different access paths. One path is the processor-side path exported to the handwritten VHDL as \texttt{instruction\_memory\_s2} and \texttt{data\_memory\_s2}. Those exported interfaces are driven directly by the processor datapath in \texttt{mips\_32.vhd}: the PC feeds the instruction-memory address, while the ALU result and store-data path feed the data-memory address and write channel. The second path is the HPS-side Avalon-MM slave interface visible in Platform Designer, which is reachable from Linux through the lightweight HPS-to-FPGA bridge. This dual-port organization allows the HPS to preload instructions and inspect results without stealing the processor's own memory port.
@@ -273,7 +341,7 @@ The role of this execution-control and observability path is illustrated by figu
 
 This controller gates the architectural side effects rather than recomputing the datapath itself. The program counter enable and register-file write enable are asserted only during the write-back state, while data-memory writes are only authorized during the execute state. The same block also drives the stage-indicator LEDs and forwards the /4-bit/ data-memory byte-enable bus only during the store phase. This is the key mechanism that converts the structurally single-datapath design into a verified /3-cycle/ execution sequence.
 
-The figure makes the user interaction model explicit. The mode-selector switch chooses between continuous execution and manual stepping, while the reset switch reinitializes the state of the processor. In manual mode, each valid button press advances the /switcher/ by one internal state transition, which makes it possible to observe fetch, execute, and write-back separately. The stage LEDs then provide an immediate indication of which phase is currently active.
+The figure illustrates the operator interface and control mechanisms. The mode-selector switch chooses between continuous execution and manual stepping, while the reset switch reinitializes the state of the processor. In manual mode, each valid button press advances the /switcher/ by one internal state transition, which makes it possible to observe fetch, execute, and write-back separately. The stage LEDs then provide an immediate indication of which phase is currently active.
 
 The /fifo/ block in /fpga/rtl/core/fifo.vhdl/ is not part of the architectural datapath; it is a lightweight observability aid connected to store operations. Every time \texttt{dmem\_write} is asserted, it shifts the written value \texttt{r2\_data\_o} through three /32-bit/ registers, so the system keeps the three most recent stored words as \texttt{data\_0}, \texttt{data\_1}, and \texttt{data\_2}. These values are also exported to the HPS-visible status interface together with validity flags and an update counter.
 
@@ -425,7 +493,7 @@ These numbers show that the processor itself occupies only a modest fraction of 
 
 * Theoretical discussion
 
-The theoretical questions proposed at the beginning of the project were formulated for the originally intended pipelined version. Since the final demonstrator is a non-pipelined implementation with staged execution rather than an overlapped five-stage pipeline, these questions must be answered at two levels: first as architectural questions about a classical MIPS pipeline, and then in relation to the processor that was actually implemented and demonstrated.
+The theoretical questions proposed at the beginning of the project were formulated during the project follow-up meeting for the originally intended pipelined version. Since the final demonstrator is a non-pipelined implementation with staged execution rather than an overlapped five-stage pipeline, these questions must be answered at two levels: first as architectural questions about a classical MIPS pipeline, and then in relation to the processor that was actually implemented and demonstrated.
 
 ** Why is a Harvard architecture required for a 1-CPI objective?
 
@@ -468,6 +536,10 @@ During a clock period, the instruction bits propagate through the decoder, multi
 The expression “within one cycle” therefore does not mean that the control unit performs a software-like sequence of steps instantaneously. It means that the combinational logic has enough time to settle during the clock period so that all required control signals are valid when the sequential state elements sample them. This explanation remains valid both for the originally intended pipeline and for the non-pipelined processor that was actually implemented.
 
 Overall, the theoretical questions remain relevant because they explain the main architectural difficulties of moving from a simple MIPS-style datapath to a true pipelined processor. The present project answers them in two ways: practically, by showing a working non-pipelined implementation on FPGA, and conceptually, by identifying the additional mechanisms that would be required to reach the original pipelined objective.
+
+* Acknowledgments
+
+This project was completed independently as a solo effort. I acknowledge the use of the Intel Quartus Prime and Platform Designer tools, the Intel SoC EDS libraries for HPS interfacing, and the foundational MIPS processor architecture described in the textbook by Hennessy and Patterson. The project benefited from the guidance provided during the follow-up meetings and from the technical resources made available through the MODAL course.
 
 * Conclusions
 

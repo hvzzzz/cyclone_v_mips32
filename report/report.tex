@@ -1,4 +1,4 @@
-% Created 2026-05-25 Mon 00:52
+% Created 2026-05-25 Mon 15:47
 % Intended LaTeX compiler: pdflatex
 
 \documentclass[a4paper,11pt]{scrartcl}
@@ -44,9 +44,9 @@
 
 \newpage
 \section{Project overview}
-\label{sec:org4141425}
+\label{sec:org97d8dee}
 
-This report presents the implementation of a MIPS32-style soft processor on Terasic's DE10-Standard Development Kit. The design supports a subset of the MIPS instruction set architecture composed of \emph{add, sub, and, or, slt, lw, sw, addi,} and \emph{beq}, and its initial organization is derived from the single-cycle processor described in \citet{john_l_hennessy_computer_2013}.
+This report presents the implementation of a MIPS32-style soft processor on Terasic's DE10-Standard Development Kit. The design supports a subset of the MIPS instruction set architecture composed of \emph{add, sub, and, or, slt, lw, sw, addi,} and \emph{beq}, and its initial organization is derived from the single-cycle processor described by \citet{john_l_hennessy_computer_2013}.
 
 The hardware platform is based on an Intel Cyclone V SoC, device \emph{5CSXFC6D6F31C6}, clocked from the board's \emph{50 MHz} oscillator. In addition to the FPGA fabric, the board includes an ARM-based Hard Processor System (HPS) running embedded Linux. In this project, the HPS is used as a host-side service processor: it loads programs into the instruction memory, reads back processor state through the lightweight HPS-to-FPGA AXI bridge, and drives the on-board \(128 \times 64\) LCD monitor used for runtime observation.
 
@@ -54,15 +54,15 @@ The implemented processor uses a \emph{32-bit} datapath, a \(32 \times 32\) bit 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[angle=0,width=16.0cm]{./images/block_diagram.png}
+\includegraphics[angle=0,width=17.0cm]{./images/block_diagram.png}
 \caption{\label{fig:general_schema}General Block Diagram}
 \end{figure}
 \section{Project specification}
-\label{sec:org04c420d}
+\label{sec:orgb7f9703}
 
 This section defines the technical specifications of the implemented processor and of the platform on which it runs. Although the design is conceptually inspired by the single-cycle MIPS processor shown in figure \ref{fig:single_cycle}, the final implementation is constrained by the synchronous memories available in the Cyclone V FPGA fabric and by the integration with the HPS.
 \subsection{Processor architecture}
-\label{sec:org30687d2}
+\label{sec:orgab7d875}
 
 The implemented core is a \emph{32-bit} processor with a datapath organized around the usual MIPS building blocks: a program counter (PC), instruction memory, register file, ALU, data memory, main control unit, ALU control unit, sign extender, adders, shifters, and multiplexers. The register file contains \(32\) registers of \(32\) bits, with two read ports and one write port.
 
@@ -74,7 +74,7 @@ The memory system follows a Harvard organization. Instruction memory and data me
 \caption{\label{fig:single_cycle}Single Cycle Processor \cite{john_l_hennessy_computer_2013}}
 \end{figure}
 \subsection{Execution model}
-\label{sec:orgad99f51}
+\label{sec:orgc92f063}
 
 The reference single-cycle architecture assumes that instruction fetch, decoding, computation, and memory access can all be completed within one clock period. In the implemented system, this assumption does not hold because the FPGA block memories used for instruction and data storage are synchronous. Consequently, the processor was reorganized into a \emph{three-stage execution model} in which each instruction is completed in three clock cycles.
 
@@ -91,11 +91,11 @@ During this cycle, the final architectural update is performed. For arithmetic a
 
 This organization implies that the implemented processor is not a true single-cycle core and not yet a full five-stage pipelined processor either. Instead, it is a staged processor in which one instruction completes every three clock cycles. The execution can be driven either in free-running mode or in manual step-by-step mode, which is particularly useful for debugging and demonstration on the board.
 \subsection{Implemented ISA}
-\label{sec:orgd4b695d}
+\label{sec:orgd6244be}
 
 The processor implements a subset of the MIPS ISA composed of R-type and I-type instructions. The supported operations are \emph{add, sub, and, or, slt, lw, sw, addi,} and \emph{beq}. Before describing each hardware block, it is useful to review these instruction formats, since they determine how each bit field is mapped onto the datapath and the control logic.
 \subsubsection{R-type instructions}
-\label{sec:orgd542b33}
+\label{sec:org6980d1e}
 These instructions perform register-to-register operations, meaning that both the inputs and the destination are registers.
 \begin{itemize}
 \item add rd, rs, rt (Add: \(rd = rs + rt\))
@@ -124,7 +124,7 @@ funct & 6 & {[}0 \(\rightarrow\) 5] & Function code (specifies the specific R-ty
 \end{tabular}
 \end{table}
 \subsubsection{I-type instructions}
-\label{sec:org727375e}
+\label{sec:org0425a11}
 
 These instructions are used for operations involving immediate values, memory access, or branching.
 \begin{itemize}
@@ -153,9 +153,9 @@ immediate & 16 & {[}0 \(\rightarrow\) 15] & 16-bit constant, offset, or branch t
 
 In I-type instructions, the 16-bit immediate field replaces the \emph{rd}, \emph{shamt}, and \emph{funct} fields used in the R-type format.
 \subsection{Host interface and observability}
-\label{sec:org4765d05}
+\label{sec:orgd185bc8}
 
-The processor is coupled to the HPS through the lightweight HPS-to-FPGA AXI bridge. In the implemented system, the bridge base address is \emph{0xFF200000} and the software utilities use a mapped span of \emph{0x00200000}. This interface allows the HPS to access the processor memories and exported status registers directly from Linux user space through \emph{open(``/dev/mem'')} and \emph{mmap()}.
+The processor is coupled to the HPS through the lightweight HPS-to-FPGA AXI bridge. In the implemented system, the bridge base address is \texttt{0xFF200000} and the software utilities use a mapped span of \texttt{0x00200000}. This interface allows the HPS to access the processor memories and exported status registers directly from Linux user space through \emph{open(``/dev/mem'')} and \emph{mmap()} \cite{terasic_technologies_de10-standard_2018}.
 
 In addition to the software-visible registers, the project uses the board peripherals as direct debug interfaces. The six seven-segment displays show the three most recent values written to data memory, the LEDs expose internal control and execution states, and the LCD monitor shows the current program counter and nearby instructions in real time. Manual stepping is enabled with \emph{SW(9)} and triggered with \emph{KEY(0)}.
 
@@ -180,11 +180,63 @@ Address & Function\\
 \end{tabular}
 \end{table}
 \section{Development tools and techniques}
-\label{sec:orge2c97bc}
+\label{sec:org2740a34}
 
-The project followed a bottom-up roadmap consistent with the milestones defined during the project follow-up meeting. The work started with HPS-FPGA communication through the AXI bridge, continued with the design and simulation of the elementary processor blocks, then moved to datapath and memory integration, and finally reached board-level validation with assembly programs, LCD monitoring, and HPS-side debug tools. From a project-management perspective, this progression can be summarized in four phases: specification and component design, datapath integration, memory and board implementation, and final validation.
+The project followed a bottom-up roadmap consistent with the milestones defined during the project follow-up meeting. This was a solo project completed over a \emph{10-week} period from \emph{March 20} to \emph{May 25, 2026}. The work started with HPS-FPGA communication through the AXI bridge, continued with the design and simulation of the elementary processor blocks, then moved to datapath and memory integration, and finally reached board-level validation with assembly programs, LCD monitoring, and HPS-side debug tools. From a project-management perspective, this progression can be summarized in four phases: specification and component design, datapath integration, memory and board implementation, and final validation.
 
 This methodology also structured the technical workflow. First, each functional block was validated independently in simulation. Next, the validated blocks were assembled into a complete datapath and connected to the Platform Designer memories and bridge interfaces. Finally, the integrated system was exercised on the board with software tools for program generation, instruction-memory loading, and runtime observation.
+\subsection{Project timeline}
+\label{sec:org9d9a5bc}
+
+Table \ref{tab:timeline} summarizes the major milestones and development phases throughout the project duration, as recorded in the version control history. The project spanned \emph{10 weeks} and progressed through four distinct phases.
+
+\begin{table}[htbp]
+\caption{\label{tab:timeline}Project timeline and major milestones}
+\centering
+\begin{tabular}{lll}
+\hline
+Date & Phase & Key Accomplishments\\
+\hline
+\textbf{March 20} & \textbf{Phase 1: Infrastructure Setup} & • HPS-FPGA AXI bridge validated\\
+(Week 1) &  & • Memory-mapped read/write confirmed\\
+ &  & • Build automation (Makefiles) added\\
+\hline
+\textbf{March 27} & \textbf{Phase 1: Component Design} & • ALU designed and simulated\\
+(Week 2) &  & • ALU control unit implemented\\
+ &  & • Project presentation prepared\\
+\hline
+\textbf{April 3} & \textbf{Phase 1: Core Components} & • Register file (32×32-bit) completed\\
+(Week 3) &  & • Program counter with enable/reset\\
+ &  & • Unit testbenches validated\\
+\hline
+\textbf{April 10} & \textbf{Phase 2: Memory Integration} & • BRAM blocks instantiated\\
+(Week 4) &  & • PC connected to instruction memory\\
+ &  & • Main control decoder added\\
+\hline
+\textbf{April 17} & \textbf{Phase 2: Datapath Assembly} & • Complete datapath integrated\\
+(Week 5) &  & • All processor blocks wired\\
+ &  & • Top-level structural design done\\
+\hline
+\textbf{April 24} & \textbf{Phase 3: First Working System} & • Processor executes on FPGA\\
+(Week 6) &  & • Initial instruction tests passed\\
+ &  & • Hardware functionality confirmed\\
+\hline
+\textbf{May 2} & \textbf{Phase 3: Execution Control} & • Manual step-by-step mode added\\
+(Week 7) &  & • Free-run continuous mode added\\
+ &  & • Switcher block with stage control\\
+\hline
+\textbf{May 4} & \textbf{Phase 4: Demonstration Programs} & • Fibonacci sequence validated\\
+(Week 8) &  & • LCD monitor fully integrated\\
+ &  & • HPS observation tools operational\\
+\hline
+\textbf{May 15} & \textbf{Phase 4: Final Validation} & • ISA test program developed\\
+(Week 9) &  & • Additional assembly tests added\\
+ &  & • Pin assignments optimized\\
+\hline
+\end{tabular}
+\end{table}
+\subsection{Development toolchain and simulation infrastructure}
+\label{sec:orga99c575}
 
 The HDL implementation was written in VHDL and synthesized with Intel Quartus Prime Lite \emph{20.1.0 Build 711}. Platform Designer was used to generate the HPS subsystem, the lightweight AXI bridge interconnect, and the on-chip instruction and data memories. The automated hardware build is driven by the top-level \emph{Makefile}, which calls \texttt{quartus\_sh -t build.tcl}, while FPGA configuration is performed through JTAG with \texttt{quartus\_pgm} using device index \emph{2}.
 
@@ -194,7 +246,7 @@ On the software side, the project relies on a custom Python \emph{two-pass assem
 
 Beyond the software toolchain, the implementation techniques used for the processor blocks are also important. The design mixes synchronous sequential blocks for architectural state, such as the program counter and register file, with combinational blocks for decoding, ALU control, multiplexing, sign extension, and address calculation. This organization follows the classical MIPS datapath while remaining compatible with the synchronous BRAM resources of the Cyclone V FPGA.
 \subsection{Program counter implementation}
-\label{sec:org4215605}
+\label{sec:orgd5716a4}
 
 The program counter is implemented in \emph{fpga/rtl/core/pc.vhd} as a simple \emph{32-bit} synchronous register with reset and enable. Its role is to hold the address of the current instruction and update that address only when the execution controller authorizes it. Figure \ref{fig:pc_block} shows the synthesized structure of this block.
 
@@ -206,19 +258,19 @@ The program counter is implemented in \emph{fpga/rtl/core/pc.vhd} as a simple \e
 
 The behavior is intentionally minimal. When \emph{reset = '1'}, the output is forced to \texttt{0x00000000}. Otherwise, on each rising clock edge, the register loads \texttt{next\_pc} only if \emph{en = '1'}. This enable signal is essential in the final design because the processor does not retire one full instruction per cycle. Instead, the \emph{switcher} block only allows the program counter to advance at the end of the write-back stage. The program counter therefore acts as the main architectural state element that synchronizes instruction sequencing with the three-stage execution model.
 \subsection{Register file implementation}
-\label{sec:org50d3605}
+\label{sec:org798daf6}
 
 The register file is implemented in \emph{fpga/rtl/core/regist.vhd} as an array of \emph{32} registers of \emph{32 bits}. It provides two independent combinational read ports and one synchronous write port. Figure \ref{fig:register_block} shows the synthesized structure of this block.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=13cm]{./images/register.png}
+\includegraphics[width=11cm]{./images/register.png}
 \caption{\label{fig:register_block}Register file implementation}
 \end{figure}
 
 The implementation enforces the MIPS convention that register \emph{\$0} is hardwired to zero. This is done in two places. First, both read processes explicitly return \texttt{0x00000000} whenever the requested read address is \emph{00000}. Second, the write process blocks any write attempt whose destination address is \emph{00000}. As a result, register \emph{\$0} cannot be modified even if the control path erroneously asserts a write. Reads from the register bank are asynchronous with respect to the clock, which is consistent with the datapath requirement of obtaining operands during the execute phase, while writes occur only on the rising clock edge when \emph{w\textsubscript{en}\textsubscript{i}} is asserted.
 \subsection{Main control implementation}
-\label{sec:org5bb154a}
+\label{sec:org752ff29}
 
 The main control unit is implemented in \texttt{/fpga/rtl/core/main\_ctrl.vhd/} as a purely combinational decoder driven by the \emph{6-bit} opcode field. Instead of assigning each output independently in separate branches, the implementation first generates a compact \emph{9-bit} intermediate vector and then maps that vector to the individual control signals. The resulting truth table is summarized in figure \ref{fig:main_control_table}.
 
@@ -228,9 +280,31 @@ The main control unit is implemented in \texttt{/fpga/rtl/core/main\_ctrl.vhd/} 
 \caption{\label{fig:main_control_table}Main control truth table for the supported instructions}
 \end{figure}
 
-The decoder currently distinguishes five opcode classes: R-type, \emph{lw}, \emph{sw}, \emph{beq}, and \emph{addi}. For example, the R-type opcode \emph{000000} activates \emph{RegDst}, \emph{RegWrite}, and the R-type \emph{ALUOp} code, while \emph{lw} activates \emph{ALUSrc}, \emph{MemtoReg}, \emph{RegWrite}, and \emph{MemRead}. The most specific implementation detail is the handling of the write enable for data memory. Rather than exposing a single-bit \emph{MemWrite}, the design expands it into a \emph{4-bit} byte-enable bus. Whenever a store instruction is detected, the BRAM enable process drives \emph{1111}, allowing a full \emph{32-bit} word write. This choice matches the byte-enable interface of the Platform Designer on-chip memory block.
+The decoder currently distinguishes five opcode classes: R-type, \emph{lw}, \emph{sw}, \emph{beq}, and \emph{addi}. The specific opcode assignments are summarized in table \ref{tab:opcodes}.
+
+\begin{table}[htbp]
+\caption{\label{tab:opcodes}Opcode assignments for the implemented instruction subset}
+\centering
+\begin{tabular}{lrr}
+\hline
+Instruction & Opcode (bin) & Opcode (hex)\\
+\hline
+R-type & 000000 & 0x00\\
+lw & 100011 & 0x23\\
+sw & 101011 & 0x2B\\
+beq & 000100 & 0x04\\
+addi & 001000 & 0x08\\
+\hline
+\end{tabular}
+\end{table}
+
+The \emph{addi} instruction represents an extension beyond the reference single-cycle processor described in the Hennessy and Patterson textbook, which originally included only \emph{add, sub, and, or, slt, lw, sw,} and \emph{beq}. The addition of \emph{addi} with opcode \emph{001000} (0x08) improves the processor's practical utility by allowing immediate-value arithmetic without requiring a separate load operation, which is particularly useful for loop counters, address calculations, and constant initialization in programs like the Fibonacci demonstration.
+
+For each opcode, the control decoder generates a \emph{9-bit} intermediate vector that is then mapped to individual control signals. For example, the R-type opcode \emph{000000} produces the vector \emph{100100010}, which activates \emph{RegDst}, \emph{RegWrite}, and sets \emph{ALUOp} to \emph{10} for R-type decoding. The \emph{lw} instruction (opcode \emph{100011}) produces \emph{011110000}, which activates \emph{ALUSrc}, \emph{MemtoReg}, \emph{RegWrite}, and \emph{MemRead}. The \emph{addi} instruction (opcode \emph{001000}) generates \emph{010100000}, which activates \emph{ALUSrc} and \emph{RegWrite}, allowing it to reuse the ALU addition path with the sign-extended immediate value as the second operand.
+
+The most specific implementation detail is the handling of the write enable for data memory. Rather than exposing a single-bit \emph{MemWrite}, the design expands it into a \emph{4-bit} byte-enable bus. Whenever a store instruction is detected, the BRAM enable process drives \emph{1111}, allowing a full \emph{32-bit} word write. This choice matches the byte-enable interface of the Platform Designer on-chip memory block.
 \subsection{ALU and ALU control implementation}
-\label{sec:org25cb13e}
+\label{sec:orgf699399}
 
 The arithmetic and logic unit is a combinational \emph{32-bit} block driven by two operands and a \emph{4-bit} control word. Its role is to provide the elementary operations required by the implemented instruction subset: logical \emph{AND} and \emph{OR}, signed \emph{ADD} and \emph{SUB}, comparison through \emph{set on less than}, and the auxiliary \emph{NOR} operation. The zero flag is generated directly from the ALU output and becomes active when the result equals \emph{0x00000000}. This flag is then reused by the branch logic for \emph{beq}.
 
@@ -240,7 +314,7 @@ Figure \ref{fig:alu_table} summarizes the control codes used to select the ALU f
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=9cm]{./images/table_alu.png}
+\includegraphics[width=8cm]{./images/table_alu.png}
 \caption{\label{fig:alu_table}ALU control truth table}
 \end{figure}
 
@@ -267,7 +341,7 @@ ALUOp & Funct & ALU control & Operation & Used by\\
 
 In practice, this means that load, store, and immediate-add instructions all reuse the same ALU addition path, while \emph{beq} reuses subtraction and simply inspects the zero flag. Only the R-type instructions require the extra decoding step based on the function field.
 \subsection{Sign extension, multiplexers, and address-generation blocks}
-\label{sec:org4f61c1e}
+\label{sec:orgdd65a57}
 
 Several support blocks are intentionally kept as small combinational elements so that each datapath transformation remains explicit. The sign-extension block replicates bit \emph{15} of the immediate field into the upper half of the \emph{32-bit} result. This preserves the sign of negative immediates and is therefore required by \emph{addi}, \emph{lw}, \emph{sw}, and \emph{beq}.
 
@@ -308,13 +382,13 @@ Branch target & (PC + 4) + (\texttt{sign\_extend(imm)} << 2) & Target address fo
 
 The left shift by \emph{2} reflects the fact that instructions are word-aligned. Once the branch offset has been shifted, it can be added to \emph{PC + 4} to form the final branch target. This makes the branch path easy to follow in the datapath: extend, shift, add, then choose between the sequential and branch addresses according to the branch decision.
 \subsection{BRAM-based instruction and data memories}
-\label{sec:org695baf4}
+\label{sec:org593ad06}
 
 The instruction and data memories are not handwritten in VHDL; they are generated by Platform Designer and integrated at the top level in \texttt{/fpga/rtl/mips\_32.vhd/}. Both memories are true dual-port on-chip RAMs mapped onto the Cyclone V M10K resources. Figure \ref{fig:bram_block} shows the generated on-chip memory structure.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=10cm]{./images/bram.png}
+\includegraphics[width=9cm]{./images/bram.png}
 \caption{\label{fig:bram_block}Generated BRAM block used for on-chip memory}
 \end{figure}
 
@@ -322,7 +396,7 @@ The complete system-level integration is easier to understand with the Platform 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=17cm]{./images/platform_designer.png}
+\includegraphics[width=15cm]{./images/platform_designer.png}
 \caption{\label{fig:platform_designer_map}Platform Designer memory map and HPS-to-FPGA connections}
 \end{figure}
 
@@ -334,7 +408,7 @@ The data memory is also addressed on a word basis through \texttt{dmem\_address}
 
 The Platform Designer figure is consistent with the software-visible address map already summarized in table \ref{tab:memory_map}: separate windows are reserved for instruction memory, data memory, and lightweight status registers. Linux software on the HPS can therefore program the instruction BRAM and observe processor state through a single memory-mapped bridge, while the processor itself keeps its own datapath-side access to the same memories.
 \subsection{Execution controller and observability blocks}
-\label{sec:orgdd0d297}
+\label{sec:orgccb4b1b}
 
 The \emph{switcher} block in \emph{fpga/rtl/core/switcher.vhd} is the element that adapts the classical datapath to the practical staged execution used on the board. Internally, it synchronizes and edge-detects the push-button input, then uses a \emph{2-bit} state register to cycle through fetch, execute, and write-back. In automatic mode, the internal step pulse is forced active every cycle; in manual mode, a state advance only occurs on a detected button press.
 
@@ -348,7 +422,7 @@ The role of this execution-control and observability path is illustrated by figu
 
 This controller gates the architectural side effects rather than recomputing the datapath itself. The program counter enable and register-file write enable are asserted only during the write-back state, while data-memory writes are only authorized during the execute state. The same block also drives the stage-indicator LEDs and forwards the \emph{4-bit} data-memory byte-enable bus only during the store phase. This is the key mechanism that converts the structurally single-datapath design into a verified \emph{3-cycle} execution sequence.
 
-The figure makes the user interaction model explicit. The mode-selector switch chooses between continuous execution and manual stepping, while the reset switch reinitializes the state of the processor. In manual mode, each valid button press advances the \emph{switcher} by one internal state transition, which makes it possible to observe fetch, execute, and write-back separately. The stage LEDs then provide an immediate indication of which phase is currently active.
+The figure illustrates the operator interface and control mechanisms. The mode-selector switch chooses between continuous execution and manual stepping, while the reset switch reinitializes the state of the processor. In manual mode, each valid button press advances the \emph{switcher} by one internal state transition, which makes it possible to observe fetch, execute, and write-back separately. The stage LEDs then provide an immediate indication of which phase is currently active.
 
 The \emph{fifo} block in \emph{fpga/rtl/core/fifo.vhdl} is not part of the architectural datapath; it is a lightweight observability aid connected to store operations. Every time \texttt{dmem\_write} is asserted, it shifts the written value \texttt{r2\_data\_o} through three \emph{32-bit} registers, so the system keeps the three most recent stored words as \texttt{data\_0}, \texttt{data\_1}, and \texttt{data\_2}. These values are also exported to the HPS-visible status interface together with validity flags and an update counter.
 
@@ -356,15 +430,15 @@ The six seven-segment outputs only display the least significant byte of each st
 
 The same figure also clarifies the division of labor between the LCD and the seven-segment displays. The LCD is used for richer textual observation of the processor state, showing the current program counter together with the previous, current, and next instructions. This is useful for following control flow and checking that the fetch sequence matches the expected instruction stream. By contrast, the seven-segment displays are dedicated to the FIFO-based store monitor and give a compact real-time indication of the most recent values written by the program. Together, these two interfaces provide complementary observability: the LCD explains \emph{where} the processor is in the instruction stream, while the seven-segment displays summarize \emph{what data} has just been committed to memory.
 \subsection{Integration technique at the top level}
-\label{sec:orgb6db29c}
+\label{sec:org37a3d03}
 
 At the top level, the processor is assembled structurally in \texttt{fpga/rtl/mips\_32.vhd}. The register file addresses are taken directly from the instruction word, the sign extender expands the \emph{16-bit} immediate to \emph{32 bits}, the ALU input multiplexer selects either the second register operand or the sign-extended immediate, and the branch address is computed by shifting the immediate left by \emph{2} and adding it to \emph{PC + 4}. The branch decision itself is reduced to \texttt{pc\_src} <= \texttt{alu\_zero} and branch.
 
 This structural style makes the implementation easy to compare with the standard MIPS datapath diagram while remaining explicit about the FPGA integration choices. In particular, the generated BRAM memories, the byte-enable handling for stores, and the execution gating performed by the \emph{switcher} block are all visible in the top-level structural netlist. As a result, the final implementation preserves the conceptual clarity of the Hennessy and Patterson datapath but adapts it to the realities of synchronous FPGA memories and HPS-assisted observation.
 \section{Validation and results}
-\label{sec:org5bb37c0}
+\label{sec:org61e2172}
 \subsection{Functional validation}
-\label{sec:orgd6b4e97}
+\label{sec:org949a2f6}
 
 The project validation began at the block level. The ALU and ALU control were simulated first to verify the arithmetic and logical operations and the decoding of the function field for R-type instructions. The register file testbench then verified dual-read and single-write behavior, while the program counter testbench checked reset and sequential update behavior. Finally, the main control testbench verified the opcode-to-control-signal mapping for the supported R-type and I-type instructions.
 
@@ -372,7 +446,7 @@ After unit simulation, the HPS-FPGA communication path was validated independent
 
 At the full-system level, the demonstrator was validated with assembly programs, in particular the Fibonacci example contained in \emph{scripts/fibo.asm}. The end-to-end flow consists of assembling the source program into a hexadecimal image, programming the instruction memory from Linux, executing the processor on the FPGA, and reading or displaying the resulting internal state. The LCD monitor and the seven-segment displays were then used to confirm that the program counter advanced correctly and that data-memory writes produced the expected sequence of values.
 \subsection{Hardware demonstration results}
-\label{sec:org5db9e32}
+\label{sec:orgfc5f4cf}
 
 The main hardware demonstration consists of running the Fibonacci program and observing the resulting writes to data memory. The validation sequence used for the demonstrator is the following:
 
@@ -466,7 +540,7 @@ The same display infrastructure was also used to validate the more general instr
 \caption{\label{fig:isa_demo}Execution of the ISA validation program on the board}
 \end{figure}
 \subsection{Detailed operation of the processor during the demo}
-\label{sec:org2f82fcc}
+\label{sec:orge4365e3}
 
 The internal operation of one instruction during the demonstration follows the three-stage organization defined previously.
 
@@ -478,7 +552,7 @@ The internal operation of one instruction during the demonstration follows the t
 
 The \emph{switcher} block implements this sequencing with three states, exposed on the LEDs as fetch, execute, and write-back indicators. The program counter is only advanced at the end of the write-back state, so one complete instruction always requires \emph{three clock cycles} in the current implementation.
 \subsection{Single-step operation and automatic mode}
-\label{sec:orgd10c3bc}
+\label{sec:org4134bf4}
 
 One of the useful validation features of the design is the possibility to observe the processor either instruction step by instruction step or in continuous automatic execution.
 
@@ -486,7 +560,7 @@ In \emph{manual single-step mode}, \emph{SW(9)} is set to logic \emph{1}. In thi
 
 To pass to \emph{automatic mode}, \emph{SW(9)} must be returned to logic \emph{0}. In that case, the \emph{switcher} drives \emph{step\textsubscript{pulse}} permanently to \emph{1}, so the state machine advances automatically on every rising edge of the \emph{50 MHz} clock. The processor then runs continuously without requiring any push-button interaction. In practice, this is the mode used when the goal is to let the Fibonacci program run to completion and inspect the resulting data-memory contents afterward.
 \subsection{Resource utilization}
-\label{sec:orgaadd85f}
+\label{sec:org2ea1a2f}
 
 The Quartus fitter reports a successful compilation for the \emph{Cyclone V 5CSXFC6D6F31C6} device. The final implementation uses \emph{2,000 ALMs} out of \emph{41,910} available, corresponding to \emph{5 \%} of the device logic resources. It also uses \emph{3,230 registers}, \emph{65,536} block memory bits, and \emph{8} RAM blocks. No DSP block is required by the current implementation. The complete resource summary is presented in table \ref{tab:resources}.
 
@@ -511,17 +585,17 @@ DLLs & 1 / 4 (25 \%)\\
 
 These numbers show that the processor itself occupies only a modest fraction of the FPGA resources. Most of the memory usage is due to the two \emph{1024 \texttimes{} 32} on-chip memories and the associated Platform Designer infrastructure.
 \section{Theoretical discussion}
-\label{sec:org77fea1d}
+\label{sec:org17ff85d}
 
-The theoretical questions proposed at the beginning of the project were formulated for the originally intended pipelined version. Since the final demonstrator is a non-pipelined implementation with staged execution rather than an overlapped five-stage pipeline, these questions must be answered at two levels: first as architectural questions about a classical MIPS pipeline, and then in relation to the processor that was actually implemented and demonstrated.
+The theoretical questions proposed at the beginning of the project were formulated during the project follow-up meeting for the originally intended pipelined version. Since the final demonstrator is a non-pipelined implementation with staged execution rather than an overlapped five-stage pipeline, these questions must be answered at two levels: first as architectural questions about a classical MIPS pipeline, and then in relation to the processor that was actually implemented and demonstrated.
 \subsection{Why is a Harvard architecture required for a 1-CPI objective?}
-\label{sec:org767b51e}
+\label{sec:org649798a}
 
 In a classical five-stage MIPS pipeline, the \emph{IF} stage fetches the next instruction while the \emph{MEM} stage may simultaneously access data memory for a \emph{lw} or \emph{sw}. If a single shared memory is used for both purposes, these two accesses compete for the same hardware resource during the same clock cycle. This creates a \emph{structural hazard}. The processor must then either stall one of the stages or accept a CPI greater than \emph{1}.
 
 This is why a Harvard organization is the natural solution when the design target is \emph{1 CPI}: separate instruction and data memories remove that resource conflict and allow instruction fetch and data access to proceed in parallel. In the implemented processor, two distinct on-chip memories are already used, one for instructions and one for data. Even though the current core is not a fully pipelined processor, this memory organization remains theoretically correct and would still be the right choice for a future pipelined version.
 \subsection{How should a RAW hazard after \emph{lw} be handled?}
-\label{sec:org251b064}
+\label{sec:orgb4017d7}
 
 A \emph{read-after-write} hazard appears when one instruction produces a value that the very next instruction needs before that value has become available in the pipeline. The classical example is:
 
@@ -541,7 +615,7 @@ For the specific \emph{lw-use} case, forwarding alone is usually not enough in a
 
 In the implemented processor, this hazard does not appear in the same form because instructions are not overlapped in a true pipeline. Execution is serialized over the fetch, execute, and write-back stages, so one instruction completes its architectural update before the next instruction reaches the corresponding dependent point. The theoretical hazard remains important, but it belongs to the pipelined version that was planned rather than to the current demonstrator.
 \subsection{How should the branch delay slot be managed?}
-\label{sec:orga6cf625}
+\label{sec:org97ff2fc}
 
 The \emph{branch delay slot} is a historical feature of early MIPS processors. In that model, the instruction immediately following a branch is always executed, even if the branch is taken. This convention simplifies some pipeline timing issues because the next sequential instruction has already been fetched before the branch decision is fully known.
 
@@ -549,7 +623,7 @@ From a theoretical perspective, managing the branch delay slot means defining a 
 
 In the implemented processor, this architectural contract is not exposed. Branches are handled by computing the comparison result and selecting the next value of the program counter through the branch-selection logic, but the demonstrator does not implement a visible delay-slot mechanism like the historical MIPS R2000. For that reason, the correct answer in the context of this project is that the delay slot is an important theoretical issue for the originally proposed pipeline, but it is not a verified feature of the delivered processor.
 \subsection{How can the control unit generate datapath signals within one cycle in VHDL?}
-\label{sec:org985dac0}
+\label{sec:orga998953}
 
 This question is fundamental because it often seems counterintuitive when coming from a software background. In VHDL, the control unit is not a sequence of instructions executed one after another. It is a \emph{combinational circuit} described textually. The opcode, and for R-type instructions the function field, propagate through logic equations that continuously produce the control signals required by the datapath.
 
@@ -558,8 +632,12 @@ During a clock period, the instruction bits propagate through the decoder, multi
 The expression “within one cycle” therefore does not mean that the control unit performs a software-like sequence of steps instantaneously. It means that the combinational logic has enough time to settle during the clock period so that all required control signals are valid when the sequential state elements sample them. This explanation remains valid both for the originally intended pipeline and for the non-pipelined processor that was actually implemented.
 
 Overall, the theoretical questions remain relevant because they explain the main architectural difficulties of moving from a simple MIPS-style datapath to a true pipelined processor. The present project answers them in two ways: practically, by showing a working non-pipelined implementation on FPGA, and conceptually, by identifying the additional mechanisms that would be required to reach the original pipelined objective.
+\section{Acknowledgments}
+\label{sec:orgce94a38}
+
+This project was completed independently as a solo effort. I acknowledge the use of the Intel Quartus Prime and Platform Designer tools, the Intel SoC EDS libraries for HPS interfacing, and the foundational MIPS processor architecture described in the textbook by Hennessy and Patterson. The project benefited from the guidance provided during the follow-up meetings and from the technical resources made available through the MODAL course.
 \section{Conclusions}
-\label{sec:orge7b8212}
+\label{sec:org74f6010}
 
 This project demonstrates the implementation of a MIPS32-style soft processor on the DE10-Standard Cyclone V SoC platform, integrated with the ARM HPS for program loading, monitoring, and debugging. The resulting system supports a useful subset of the MIPS ISA, uses separate instruction and data memories, and can be driven from Linux user space through the lightweight AXI bridge.
 
