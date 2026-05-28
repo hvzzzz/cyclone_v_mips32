@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Generated on 2026-05-29 Fri 00:46 -->
+<meta charset="utf-8"/>
+<title>A <span class='smallcap'>MIPS32</span> Soft Processor on Cyclone V</title>
+<meta name="author" content="Hanan Quispe"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/simple.css" id="theme"/>
+
+<link rel="stylesheet" href="./robot-lung-nord.css"/>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">A <span class='smallcap'>MIPS32</span> Soft Processor on Cyclone V</h1><em><span class='smallcap'>FPGA</span> Implementation, <span class='smallcap'>HPS</span> Monitoring, and Hardware Demonstration</em><br><br>Hanan Quispe<br>May 2026
+</section>
+
+<section>
+<section id="slide-org7dbdf8c">
+<h2 id="org7dbdf8c">Introduction</h2>
+<div class="outline-text-2" id="text-org7dbdf8c">
+</div>
+</section>
+<section id="slide-org296f2b8">
+<h3 id="org296f2b8">Objective</h3>
+<ul>
+<li>Implement a <i><span class='smallcap'>MIPS32</span>-style soft processor</i> in <span class='smallcap'>VHDL</span> on the <i><span class='smallcap'>DE10</span>-Standard Cyclone V SoC</i>.</li>
+<li>Support a useful <span class='smallcap'>ISA</span> subset: <i>add, sub, and, or, slt, addi, lw, sw, beq</i>.</li>
+<li>Build a <i>complete demonstrator</i>, not only a datapath:
+<ul>
+<li>instruction loading from Linux on the <span class='smallcap'>HPS</span>,</li>
+<li>runtime observation on the <span class='smallcap'>LCD</span> and seven-segment displays,</li>
+<li>end-to-end validation with assembly programs.</li>
+
+</ul></li>
+<li>Main result: a working <i>3-stage staged processor</i> adapted to <span class='smallcap'>FPGA</span> synchronous memories.</li>
+
+</ul>
+</section>
+<section id="slide-org75e43ed">
+<h3 id="org75e43ed">Outline</h3>
+<ol>
+<li>Context and design choices</li>
+<li>Implemented architecture</li>
+<li>Development and integration</li>
+<li>Validation results</li>
+<li>Theoretical discussion</li>
+<li>Demo tutorial</li>
+<li>Conclusion and future work</li>
+
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-orgb1e31a2">
+<h2 id="orgb1e31a2">Context</h2>
+<div class="outline-text-2" id="text-orgb1e31a2">
+</div>
+</section>
+<section id="slide-org700fb8a">
+<h3 id="org700fb8a">System-Level Summary</h3>
+<ul>
+<li><span class='smallcap'>FPGA</span> side: <span class='smallcap'>MIPS</span> core, instruction memory, data memory, observability logic.</li>
+<li><span class='smallcap'>HPS</span> side: program loading, state readback, <span class='smallcap'>LCD</span> monitor.</li>
+<li>Result: a complete <span class='smallcap'>HW</span>/<span class='smallcap'>SW</span> co-design around the processor.</li>
+
+</ul>
+</section>
+<section id="slide-org8660dd3">
+<h3 id="org8660dd3">System-Level View</h3>
+
+<div id="orge723aa8" class="figure">
+<p><img src="../../report/images/block_diagram.png" alt="block_diagram.png" width="110%" />
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orge825c21">
+<h2 id="orge825c21">Architecture</h2>
+<div class="outline-text-2" id="text-orge825c21">
+</div>
+</section>
+<section id="slide-org9563c8b">
+<h3 id="org9563c8b">Reference Datapath</h3>
+
+<div id="org03e5937" class="figure">
+<p><img src="../../report/images/Single.png" alt="Single.png" width="78%" />
+</p>
+</div>
+</section>
+<section id="slide-org9d440cb">
+<h3 id="org9d440cb">Implemented Datapath</h3>
+
+<div id="org09ae031" class="figure">
+<p><img src="./images/implemented.png" alt="implemented.png" width="150%" />
+</p>
+</div>
+</section>
+<section id="slide-orgc4f0ee2">
+<h3 id="orgc4f0ee2">Target vs Implemented Organization</h3>
+<ul>
+<li>The reference starting point is the <i>classical single-cycle <span class='smallcap'>MIPS</span> datapath</i>.</li>
+<li>The final implementation is <i>not a five-stage overlapped pipeline</i>.</li>
+<li>Because the Cyclone V <span class='smallcap'>BRAM</span><small>s</small> are synchronous, the design was reorganized into <i>three execution stages</i>:
+<ol>
+<li><i>Fetch</i></li>
+<li><i>Execute</i></li>
+<li><i>Write-back</i></li>
+
+</ol></li>
+<li>Therefore, one instruction completes in <i>3 clock cycles</i> in the delivered system.</li>
+
+</ul>
+</section>
+<section id="slide-org9148544">
+<h3 id="org9148544">Implemented Processor</h3>
+<ul>
+<li><i>32-bit datapath</i> with a <i>32 x 32-bit register file</i>.</li>
+<li><i>Harvard organization</i>: separate instruction and data memories.</li>
+<li>Main blocks:
+<ul>
+<li>program counter,</li>
+<li>register file,</li>
+<li>main control and <span class='smallcap'>ALU</span> control,</li>
+<li><span class='smallcap'>ALU</span>,</li>
+<li>sign extension and address-generation logic,</li>
+<li><span class='smallcap'>BRAM</span>-backed instruction and data memories.</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org3e290f8">
+<h3 id="org3e290f8">Implemented Instruction Set Architecture</h3>
+<div class="outline-text-3" id="text-org3e290f8">
+</div>
+</section>
+<section id="slide-org5d4b2be">
+<h4 id="org5d4b2be">R type instructions</h4>
+<ul>
+<li>add rd, rs, rt (Add: \(rd = rs + rt\))</li>
+<li>sub rd, rs, rt (Subtract: \(rd = rs - rt\))</li>
+<li>and rd, rs, rt (Bitwise <span class='smallcap'>AND</span>: \(rd = rs \ \& \ rt\))</li>
+<li>or  rd, rs, rt (Bitwise <span class='smallcap'>OR</span>: \(rd = rs \ | \ rt\))</li>
+<li>slt rd, rs, rt (Set on Less Than: \(rd = 1\) if \(rs < rt\), else \(0\))</li>
+
+</ul>
+</section>
+<section id="slide-orgc03eb7e">
+<h4 id="orgc03eb7e">I type instructions</h4>
+<ul>
+<li>lw rt, offset(rs) (Load Word: Memory[\(rs\) + offset] \(\rightarrow rt\))</li>
+<li>sw rt, offset(rs) (Store Word: \(rt \rightarrow\) Memory[\(rs\) + offset])</li>
+<li>addi rt, rs, immediate (Add Immediate: \(rt = rs + \text{immediate}\))</li>
+<li>beq rs, rt, label (Branch if Equal: If \(rs == rt\), <span class='smallcap'>PC</span> jumps to label)</li>
+
+</ul>
+</section>
+<section id="slide-org203dce0">
+<h3 id="org203dce0">Assembly to Machine Code Example</h3>
+<ul>
+<li><p>
+<i>R-type: add $4, $0, $0</i>
+</p>
+<pre class="example" id="orgf23ab17">
+  opcode | rs    | rt    | rd    | shamt | funct
+  000000 | 00000 | 00000 | 00100 | 00000 | 100000
+  → 0x00002020
+</pre></li>
+<li><p>
+<i>I-type: beq $0, $0, -1</i>
+</p>
+<pre class="example" id="orgda5163a">
+  opcode | rs    | rt    | immediate
+  000100 | 00000 | 00000 | 1111111111111111
+  → 0x1000FFFF
+</pre></li>
+
+</ul>
+</section>
+<section id="slide-org7b6c396">
+<h3 id="org7b6c396">Instruction Encoding Reference</h3>
+<div class="outline-text-3" id="text-org7b6c396">
+</div>
+</section>
+<section id="slide-org0de753e">
+<h4 id="org0de753e"><i>R-type instructions</i> (opcode = 000000):</h4>
+<p>
+<b>funct</b>
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">add</td>
+<td class="org-right">100000</td>
+<td class="org-right">0x20</td>
+</tr>
+
+<tr>
+<td class="org-left">sub</td>
+<td class="org-right">100010</td>
+<td class="org-right">0x22</td>
+</tr>
+
+<tr>
+<td class="org-left">and</td>
+<td class="org-right">100100</td>
+<td class="org-right">0x24</td>
+</tr>
+
+<tr>
+<td class="org-left">or</td>
+<td class="org-right">100101</td>
+<td class="org-right">0x25</td>
+</tr>
+
+<tr>
+<td class="org-left">slt</td>
+<td class="org-right">101010</td>
+<td class="org-right">0x2A</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="slide-orgf733bba">
+<h4 id="orgf733bba"><i>I-type instructions</i>:</h4>
+<p>
+<b>opcode</b>
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">lw</td>
+<td class="org-right">100011</td>
+<td class="org-right">0x23</td>
+</tr>
+
+<tr>
+<td class="org-left">sw</td>
+<td class="org-right">101011</td>
+<td class="org-right">0x2B</td>
+</tr>
+
+<tr>
+<td class="org-left">addi</td>
+<td class="org-right">001000</td>
+<td class="org-right">0x08</td>
+</tr>
+
+<tr>
+<td class="org-left">beq</td>
+<td class="org-right">000100</td>
+<td class="org-right">0x04</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><i>shamt</i> field: always 00000 for non-shift instructions</li>
+
+</ul>
+</section>
+<section id="slide-orgf5d4150">
+<h3 id="orgf5d4150">R-type Instruction Datapath</h3>
+
+<div id="org97831cd" class="figure">
+<p><img src="./images/Rtype.png" alt="Rtype.png" width="78%" />
+</p>
+</div>
+</section>
+<section id="slide-org8520563">
+<h3 id="org8520563">I-type Instruction Datapath</h3>
+
+<div id="orgd484325" class="figure">
+<p><img src="./images/Itype.png" alt="Itype.png" width="78%" />
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-org08fe161">
+<h2 id="org08fe161">Platform Integration</h2>
+<div class="outline-text-2" id="text-org08fe161">
+</div>
+</section>
+<section id="slide-orgf3430d1">
+<h3 id="orgf3430d1">Board-Level Demonstrator</h3>
+<ul>
+<li><i>Manual mode</i>: step through fetch, execute, and write-back.</li>
+<li><i>Automatic mode</i>: run continuously.</li>
+<li>The <i>switcher</i> block controls when state updates are allowed.</li>
+<li>A small <span class='smallcap'>FIFO</span> keeps the <i>three latest stored values</i> (sw instruction) for visual observation.</li>
+
+</ul>
+</section>
+<section id="slide-orgfe8b258">
+<h3 id="orgfe8b258">Demonstrator on the Board</h3>
+
+<div id="org3d0a20f" class="figure">
+<p><img src="../../report/images/visual.jpeg" alt="visual.jpeg" width="72%" />
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgfebfced">
+<h2 id="orgfebfced">Validation</h2>
+<div class="outline-text-2" id="text-orgfebfced">
+</div>
+</section>
+<section id="slide-orgc48838f">
+<h3 id="orgc48838f">Validation Strategy</h3>
+<ul>
+<li><i>Unit-level validation</i> in simulation:
+<ul>
+<li><span class='smallcap'>ALU</span>,</li>
+<li><span class='smallcap'>ALU</span> control,</li>
+<li>register file,</li>
+<li>program counter,</li>
+<li>main control.</li>
+
+</ul></li>
+<li><i>Integration validation</i>:
+<ul>
+<li><span class='smallcap'>HPS</span>-to-<span class='smallcap'>FPGA</span> <span class='smallcap'>AXI</span> bridge read/write tests,</li>
+<li>instruction-memory programming from Linux,</li>
+<li>data-memory readback.</li>
+
+</ul></li>
+<li><i>System-level validation</i>:
+<ul>
+<li>Fibonacci program,</li>
+<li>mixed <span class='smallcap'>ISA</span> validation program,</li>
+<li><span class='smallcap'>LCD</span> and seven-segment observation on the board.</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org04fd045">
+<h3 id="org04fd045">Validation Flow</h3>
+<ul>
+<li>Assemble the program with the custom Python assembler.</li>
+<li>Load the generated machine code into <i>instruction memory</i> from the <span class='smallcap'>HPS</span>.</li>
+<li>Run the processor on the <span class='smallcap'>FPGA</span> in <i>manual</i> or <i>automatic</i> mode.</li>
+<li>Observe:
+<ul>
+<li><i>program flow</i> on the <span class='smallcap'>LCD</span>,</li>
+<li><i>recent memory stores</i> on the seven-segment displays,</li>
+<li><i>memory contents</i> through <span class='smallcap'>HPS</span>-side utilities.</li>
+
+</ul></li>
+<li>This validates the entire chain from assembly source to hardware execution.</li>
+
+</ul>
+</section>
+<section id="slide-org712da4f">
+<h3 id="org712da4f">Fibonacci Demonstration</h3>
+<ul>
+<li>The main demonstrator stores successive Fibonacci values into data memory.</li>
+<li>Why this program is useful:
+<ul>
+<li>repeated arithmetic operations,</li>
+<li>loop control with <i>beq</i>,</li>
+<li>repeated <i>sw</i> operations,</li>
+<li>easy numerical verification through memory readback.</li>
+
+</ul></li>
+<li>Expected sequence begins with:
+<ul>
+<li><i>0, 1, 1, 2, 3, 5, 8, &#x2026;, 89, 144, 233, &#x2026;</i></li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org2fa272a">
+<h3 id="org2fa272a">Fibonacci Board View</h3>
+
+<div id="org63232d0" class="figure">
+<p><img src="../../report/images/normal_fibo.jpeg" alt="normal_fibo.jpeg" width="72%" />
+</p>
+</div>
+</section>
+<section id="slide-org85c38ee">
+<h3 id="org85c38ee"><span class='smallcap'><span class='smallcap'>ISA</span></span> Validation Program</h3>
+<ul>
+<li>This second program checks that the processor is not limited to one benchmark.</li>
+<li>It combines:
+<ul>
+<li>arithmetic operations,</li>
+<li>comparison with <i>slt</i>,</li>
+<li>memory stores and a load,</li>
+<li>a final modification of the loaded value.</li>
+
+</ul></li>
+<li>It is useful because each store can be inspected in memory and on the display path.</li>
+
+</ul>
+</section>
+<section id="slide-org7a46d0d">
+<h3 id="org7a46d0d"><span class='smallcap'><span class='smallcap'>ISA</span></span> Board View</h3>
+
+<div id="org66276e4" class="figure">
+<p><img src="./images/isa.jpeg" alt="isa.jpeg" width="78%" />
+</p>
+</div>
+</section>
+<section id="slide-org3ee6df3">
+<h3 id="org3ee6df3">32-Bit Limitation</h3>
+<ul>
+<li>The datapath and register file are <i>32 bits</i> wide.</li>
+<li>Fibonacci eventually exceeds \(2^{32}\).</li>
+<li>The stored result then <i>wraps around modulo \(2^{32}\)</i>.</li>
+<li>This is not a bug in the demonstrator: it is the expected consequence of a 32-bit implementation.</li>
+
+</ul>
+</section>
+<section id="slide-org3687777">
+<h3 id="org3687777">Overflow Example</h3>
+
+<div id="orgc7bb9ed" class="figure">
+<p><img src="./images/32_bit_limit.jpeg" alt="32_bit_limit.jpeg" width="78%" />
+</p>
+</div>
+</section>
+<section id="slide-org45b2736">
+<h3 id="org45b2736">Resource Utilization</h3>
+<ul>
+<li>Post-fit utilization on <i>Cyclone V 5CSXFC6D6F31C6</i>:
+<ul>
+<li><i>2,000 <span class='smallcap'>ALM</span><small>s</small></i> out of <i>41,910</i> available, about <i>5%</i>,</li>
+<li><i>3,230 registers</i>,</li>
+<li><i>65,536 block memory bits</i>,</li>
+<li><i>8 <span class='smallcap'>RAM</span> blocks</i>,</li>
+<li><i>0 <span class='smallcap'>DSP</span> blocks</i>.</li>
+
+</ul></li>
+<li>Conclusion: the processor and its observability infrastructure fit comfortably on the target <span class='smallcap'>FPGA</span>.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgcea61de">
+<h2 id="orgcea61de">Theoretical Discussion</h2>
+<div class="outline-text-2" id="text-orgcea61de">
+</div>
+</section>
+<section id="slide-org0fc06ea">
+<h3 id="org0fc06ea">From Pipeline Theory to Staged Reality</h3>
+<ul>
+<li><i>Original goal</i>: 5-stage pipeline, 1-<span class='smallcap'>CPI</span> throughput</li>
+<li><i>Reality</i>: Synchronous <span class='smallcap'>BRAM</span><small>s</small> → 3-stage staged processor (3 cycles/instruction)</li>
+<li><i>Why discuss pipeline theory?</i> Foundation for future optimization</li>
+
+</ul>
+</section>
+<section id="slide-orgbae58a4">
+<h3 id="orgbae58a4">Data Hazards: <span class='smallcap'><span class='smallcap'>RAW</span></span> After <i>lw</i></h3>
+<div class="org-src-container">
+
+<pre class="src src-asm"><span style="color: #82aaff;">lw</span>   <span style="color: #c099ff;">$t0</span>, 0($t1)
+<span style="color: #82aaff;">add</span>  <span style="color: #c099ff;">$t2</span>, $t0, $t3  # $t0 not ready!
+</pre>
+</div>
+<ul>
+<li><i>Pipeline solutions</i>: forwarding or stalling</li>
+<li><i>Staged processor</i>: serialized execution avoids the hazard</li>
+
+</ul>
+</section>
+<section id="slide-orga2b2738">
+<h3 id="orga2b2738">Control Hazards: Branch Delay Slots</h3>
+<ul>
+<li><i><span class='smallcap'>MIPS</span> feature</i>: instruction after branch always executes</li>
+<li><i>Pipeline benefit</i>: simplifies control, no <span class='smallcap'>IF</span> flush needed</li>
+<li><i>Current implementation</i>: branches complete before next fetch</li>
+<li><i>Result</i>: delay slot not exposed to programmer</li>
+
+</ul>
+</section>
+<section id="slide-orgfa5b73c">
+<h3 id="orgfa5b73c">Single-Cycle Control Generation</h3>
+<ul>
+<li>Control unit = pure combinational logic</li>
+<li>Opcode → Boolean equations → control signals</li>
+<li>Signals settle within clock period</li>
+<li>Sequential elements sample on clock edge</li>
+
+</ul>
+</section>
+<section id="slide-org4135702">
+<h3 id="org4135702">Theory vs. Implementation Summary</h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Concern</th>
+<th scope="col" class="org-left">Pipeline</th>
+<th scope="col" class="org-left">Staged</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Data (<span class='smallcap'>RAW</span>)</td>
+<td class="org-left">Forwarding/stalling</td>
+<td class="org-left">Serialization</td>
+</tr>
+
+<tr>
+<td class="org-left">Control</td>
+<td class="org-left">Delay slot/prediction</td>
+<td class="org-left">No delay slot</td>
+</tr>
+
+<tr>
+<td class="org-left">Control timing</td>
+<td class="org-left">Combinational critical</td>
+<td class="org-left">Same</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section>
+<section id="slide-org5337eb9">
+<h2 id="org5337eb9">Demo Tutorial</h2>
+<div class="outline-text-2" id="text-org5337eb9">
+</div>
+</section>
+<section id="slide-org19a255f">
+<h3 id="org19a255f">Goal of the Demo Section</h3>
+<ul>
+<li>We will see two concrete examples:
+<ul>
+<li><i>Fibonacci</i> for the main demonstration,</li>
+<li><i><span class='smallcap'>ISA</span> test</i> for instruction coverage.</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org3a9fc55">
+<h3 id="org3a9fc55">Step 1: Build and Configure the <span class='smallcap'><span class='smallcap'>FPGA</span></span></h3>
+<ul>
+<li><p>
+First, synthesize the design and generate the bitstream:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> fpga-build
+</pre>
+</div></li>
+<li><p>
+Then program the <span class='smallcap'>FPGA</span> fabric through <span class='smallcap'>JTAG</span>:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> fpga-flash
+</pre>
+</div></li>
+<li>After this step, the hardware platform is ready, but instruction memory is still empty.</li>
+
+</ul>
+</section>
+<section id="slide-orgcdc41e0">
+<h3 id="orgcdc41e0">Step 2: Assemble a Program</h3>
+<ul>
+<li>The custom Python assembler converts <span class='smallcap'>MIPS</span> assembly into <i>32-bit hexadecimal words</i>.</li>
+<li><p>
+For the Fibonacci demo:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  python3 scripts/assembler.py scripts/fibo.asm -o scripts/program.hex
+</pre>
+</div></li>
+<li><p>
+For the <span class='smallcap'>ISA</span> validation demo:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  python3 scripts/assembler.py scripts/isa.asm -o scripts/program.hex
+</pre>
+</div></li>
+<li>The generated file <i>scripts/program.hex</i> is the image that will be loaded into instruction memory.</li>
+
+</ul>
+</section>
+<section id="slide-orge18ebce">
+<h3 id="orge18ebce">Step 3: Copy the Program and Flasher to the <span class='smallcap'><span class='smallcap'>HPS</span></span></h3>
+<ul>
+<li>The <i>software/flasher</i> utility is the program that writes <i>program.hex</i> into <span class='smallcap'>FPGA</span> instruction memory from Linux.</li>
+<li><p>
+The actual deployment commands are:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  scp software/flasher/flasher.c cyclone:~/scripts/
+  scp scripts/program.hex cyclone:~/scripts/
+  ssh cyclone <span style="color: #c3e88d;">"gcc ~/scripts/flasher.c -o ~/scripts/flasher -std=gnu99"</span>
+</pre>
+</div></li>
+<li><p>
+The equivalent Make target is:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> flasher_deploy
+</pre>
+</div></li>
+
+</ul>
+</section>
+<section id="slide-org884f823">
+<h3 id="org884f823">Step 4: Flash the Instruction Memory from the <span class='smallcap'><span class='smallcap'>HPS</span></span></h3>
+<ul>
+<li><p>
+Once the flasher and <i>program.hex</i> are on the board, the <span class='smallcap'>HPS</span> loads the instruction <span class='smallcap'>BRAM</span>:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  ssh cyclone <span style="color: #c3e88d;">"~/scripts/flasher ~/scripts/program.hex"</span>
+</pre>
+</div></li>
+<li><p>
+The equivalent Make target is:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> flasher_run
+</pre>
+</div></li>
+<li>This is the key step of the tutorial: the <span class='smallcap'>FPGA</span> bitstream is already programmed, and now the <i>instruction memory contents</i> are programmed from Linux.</li>
+
+</ul>
+</section>
+<section id="slide-org2bfab31">
+<h3 id="org2bfab31">Step 5: Observe Execution</h3>
+<ul>
+<li><p>
+Several observation methods are available after flashing:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> fibo-read
+  <span style="color: #ffc777;">make</span> lcd_run
+</pre>
+</div></li>
+<li><i>make fibo-read</i> reads back data memory contents from the <span class='smallcap'>HPS</span> side.</li>
+<li><i>make lcd_run</i> starts the <span class='smallcap'>LCD</span> monitor that shows the <span class='smallcap'>PC</span> and nearby instructions.</li>
+<li>On the board itself, the <span class='smallcap'>LED</span><small>s</small> and seven-segment displays give immediate visual feedback.</li>
+
+</ul>
+</section>
+<section id="slide-org47ef424">
+<h3 id="org47ef424">Fibonacci Example: Program Logic</h3>
+<ul>
+<li><i>scripts/fibo.asm</i> initializes:
+<ul>
+<li>the current term,</li>
+<li>the next term,</li>
+<li>the data-memory pointer,</li>
+<li>the loop counter.</li>
+
+</ul></li>
+<li>The loop then performs four actions repeatedly:
+<ol>
+<li>test the stopping condition with <i>beq</i>,</li>
+<li>store the current Fibonacci value with <i>sw</i>,</li>
+<li>compute the next pair of terms,</li>
+<li>increment the pointer and counter.</li>
+
+</ol></li>
+<li>The instruction <i>beq $0, $0, -8</i> acts as an unconditional backward branch to the loop.</li>
+
+</ul>
+</section>
+<section id="slide-org78bbbe0">
+<h3 id="org78bbbe0">Fibonacci Example: What to Show Live</h3>
+<ul>
+<li><p>
+Start from:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  python3 scripts/assembler.py scripts/fibo.asm -o scripts/program.hex
+  <span style="color: #ffc777;">make</span> flasher_deploy
+  <span style="color: #ffc777;">make</span> flasher_run
+</pre>
+</div></li>
+<li><p>
+Then show one of the observation paths:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> fibo-read
+</pre>
+</div>
+<p>
+or
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> lcd_run
+</pre>
+</div></li>
+<li>Expected data-memory sequence begins with <i>0, 1, 1, 2, 3, 5, 8</i>.</li>
+
+</ul>
+</section>
+<section id="slide-org2642668">
+<h3 id="org2642668"><span class='smallcap'><span class='smallcap'>ISA</span></span> Example: Program Logic</h3>
+<ul>
+<li><i>scripts/isa.asm</i> is a compact functional test of the implemented <span class='smallcap'>ISA</span> subset.</li>
+<li>It demonstrates:
+<ul>
+<li><i>addi</i> to create constants,</li>
+<li><i>add</i> and <i>sub</i> for arithmetic,</li>
+<li><i>slt</i> for comparison,</li>
+<li><i>sw</i> to store results in data memory,</li>
+<li><i>lw</i> to read a stored word back,</li>
+<li>a final <i>addi</i> and <i>sw</i> to confirm load-use correctness in the staged design.</li>
+
+</ul></li>
+<li>The final <i>beq $0, $0, -1</i> traps execution at the end of the test.</li>
+
+</ul>
+</section>
+<section id="slide-org22b9d84">
+<h3 id="org22b9d84"><span class='smallcap'><span class='smallcap'>ISA</span></span> Example: How to Run It</h3>
+<ul>
+<li><p>
+Generate the machine code:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  python3 scripts/assembler.py scripts/isa.asm -o scripts/program.hex
+</pre>
+</div></li>
+<li><p>
+Deploy and flash it:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> flasher_deploy
+  <span style="color: #ffc777;">make</span> flasher_run
+</pre>
+</div></li>
+<li><p>
+Then inspect the result with the same tools:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">  <span style="color: #ffc777;">make</span> fibo-read
+  <span style="color: #ffc777;">make</span> lcd_run
+</pre>
+</div></li>
+<li>This example is useful during the defense because each stored result corresponds to a specific supported instruction.</li>
+
+</ul>
+</section>
+<section id="slide-orge3f8dde">
+<h3 id="orge3f8dde">Demo Tutorial Summary</h3>
+<ul>
+<li><i>Host <span class='smallcap'>PC</span></i>:
+<ul>
+<li>build <span class='smallcap'>FPGA</span>,</li>
+<li>assemble <i>fibo.asm</i> or <i>isa.asm</i>.</li>
+
+</ul></li>
+<li><i>Transfer to <span class='smallcap'>HPS</span></i>:
+<ul>
+<li>use <i>scp</i> for <i>flasher.c</i> and <i>program.hex</i>.</li>
+
+</ul></li>
+<li><i>Execution on <span class='smallcap'>HPS</span></i>:
+<ul>
+<li>compile the flasher with <i>gcc</i>,</li>
+<li>run it to program instruction memory.</li>
+
+</ul></li>
+<li><i>Observation</i>:
+<ul>
+<li><span class='smallcap'>LCD</span> monitor,</li>
+<li><span class='smallcap'>HPS</span> memory readback,</li>
+<li>board <span class='smallcap'>LED</span><small>s</small> and seven-segment displays.</li>
+
+</ul></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgd70f243">
+<h2 id="orgd70f243">Conclusion</h2>
+<div class="outline-text-2" id="text-orgd70f243">
+</div>
+</section>
+<section id="slide-org448ec6a">
+<h3 id="org448ec6a">Conclusion</h3>
+<ul>
+<li>The project produced a <i>working <span class='smallcap'>MIPS32</span>-style processor demonstrator</i> on Cyclone V.</li>
+<li>The final contribution is both:
+<ul>
+<li>a functional processor core,</li>
+<li>a complete experimentation environment with assembler, flasher, <span class='smallcap'>HPS</span> tools, <span class='smallcap'>LCD</span> monitor, and board-level observability.</li>
+
+</ul></li>
+<li>The implementation is <i>functionally operational</i> and <i>hardware-demonstrated</i>.</li>
+<li>The key architectural adaptation was moving from the textbook single-cycle view to a <i>practical 3-stage execution model</i> compatible with <span class='smallcap'>FPGA</span> memories.</li>
+
+</ul>
+</section>
+<section id="slide-orga91e38f">
+<h3 id="orga91e38f">Future Work</h3>
+<ul>
+<li>Move from staged execution to a <i>true pipelined architecture</i>.</li>
+<li>Add support for floating point operations (fpu).</li>
+<li>Extend the <span class='smallcap'>ISA</span>, especially jumps and additional immediate operations.</li>
+<li>Strengthen the <span class='smallcap'>HPS</span> monitor with richer debug information.</li>
+
+</ul>
+</section>
+<section id="slide-orge251e15">
+<h3 id="orge251e15">Thank You</h3>
+<ul>
+<li>Questions?</li>
+<li>Contact: hanan.quispe-condori@polytechnique.edu</li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

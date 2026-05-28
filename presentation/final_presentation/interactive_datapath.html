@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive MIPS Datapath</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: #2e3440;
+            color: #d8dee9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #datapath-container {
+            background: #3b4252;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+        }
+        
+        svg {
+            width: 100%;
+            height: auto;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        .component {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .component:hover rect, .component:hover ellipse, .component:hover polygon {
+            fill: #88c0d0;
+            stroke: #5e81ac;
+            stroke-width: 3;
+        }
+        
+        .component.active rect, .component.active ellipse, .component.active polygon {
+            fill: #a3be8c;
+            stroke: #2e3440;
+            stroke-width: 3;
+        }
+        
+        .wire {
+            fill: none;
+            stroke: #4c566a;
+            stroke-width: 2;
+            transition: stroke 0.3s;
+        }
+        
+        .wire.active {
+            stroke: #bf616a;
+            stroke-width: 4;
+            animation: flow 1s linear infinite;
+        }
+        
+        @keyframes flow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -20; }
+        }
+        
+        .control-wire {
+            stroke: #5e81ac;
+            stroke-dasharray: 5, 5;
+        }
+        
+        .hps-wire {
+            stroke: #b48ead;
+            stroke-dasharray: 10, 5;
+            stroke-width: 2.5;
+        }
+        
+        #info-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #434c5e;
+            border-radius: 4px;
+            min-height: 120px;
+            width: 100%;
+            max-width: 1360px;
+        }
+        
+        #info-panel h3 {
+            margin-top: 0;
+            color: #88c0d0;
+        }
+        
+        #info-panel p {
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+        
+        .signal-name {
+            color: #a3be8c;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #5e81ac;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #81a1c1;
+        }
+        
+        button.active {
+            background: #a3be8c;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-line {
+            width: 30px;
+            height: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="datapath-container">
+        <h2 style="text-align: center; margin-top: 0;">MIPS32 Datapath - Interactive Diagram</h2>
+        
+        <svg viewBox="0 0 1200 800" id="datapath-svg">
+            <!-- Definitions for markers -->
+            <defs>
+                <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="#4c566a" />
+                </marker>
+                <marker id="arrowhead-active" markerWidth="6" markerHeight="6" refX="5" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="#bf616a" />
+                </marker>
+            </defs>
+            
+            <!-- PC -->
+            <g class="component" id="pc" data-name="PC (Program Counter)">
+                <rect x="50" y="150" width="80" height="60" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="90" y="185" text-anchor="middle" font-size="16" font-weight="bold">PC</text>
+            </g>
+            
+            <!-- Instruction Memory (Dual Port) -->
+            <g class="component" id="imem" data-name="Instruction Memory">
+                <rect x="170" y="130" width="140" height="100" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="240" y="155" text-anchor="middle" font-size="14" font-weight="bold">Instruction</text>
+                <text x="240" y="175" text-anchor="middle" font-size="14" font-weight="bold">Memory</text>
+                <text x="240" y="195" text-anchor="middle" font-size="12">(4KB Dual-Port)</text>
+                <text x="200" y="215" text-anchor="middle" font-size="10" fill="#5e81ac">Port 1 FPGA</text>
+                <text x="280" y="215" text-anchor="middle" font-size="10" fill="#b48ead">Port 2 HPS</text>
+            </g>
+            
+            <!-- Control Unit -->
+            <g class="component" id="control" data-name="Control Unit">
+                <ellipse cx="400" cy="180" rx="70" ry="50" fill="#eceff4" stroke="#4c566a" stroke-width="2"/>
+                <text x="400" y="185" text-anchor="middle" font-size="14" font-weight="bold">Control</text>
+            </g>
+            
+            <!-- Register File -->
+            <g class="component" id="regfile" data-name="Register File">
+                <rect x="340" y="270" width="120" height="100" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="400" y="295" text-anchor="middle" font-size="14" font-weight="bold">Registers</text>
+                <text x="400" y="315" text-anchor="middle" font-size="12">(32 x 32-bit)</text>
+                <text x="400" y="335" text-anchor="middle" font-size="10">Read data 1</text>
+                <text x="400" y="355" text-anchor="middle" font-size="10">Read data 2</text>
+            </g>
+            
+            <!-- ALU -->
+            <g class="component" id="alu" data-name="ALU">
+                <polygon points="620,300 620,420 720,410 720,310" fill="#eceff4" stroke="#4c566a" stroke-width="2"/>
+                <text x="670" y="365" text-anchor="middle" font-size="16" font-weight="bold">ALU</text>
+            </g>
+            
+            <!-- Data Memory (Dual Port) -->
+            <g class="component" id="dmem" data-name="Data Memory">
+                <rect x="820" y="300" width="140" height="120" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="890" y="335" text-anchor="middle" font-size="14" font-weight="bold">Data</text>
+                <text x="890" y="355" text-anchor="middle" font-size="14" font-weight="bold">Memory</text>
+                <text x="890" y="375" text-anchor="middle" font-size="12">(4KB Dual-Port)</text>
+                <text x="860" y="400" text-anchor="middle" font-size="10" fill="#5e81ac">Port 1</text>
+                <text x="920" y="400" text-anchor="middle" font-size="10" fill="#b48ead">Port 2</text>
+            </g>
+            
+            <!-- Sign Extend -->
+            <g class="component" id="signext" data-name="Sign Extend">
+                <rect x="340" y="450" width="100" height="50" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="390" y="465" text-anchor="middle" font-size="12" font-weight="bold">Sign</text>
+                <text x="390" y="485" text-anchor="middle" font-size="12" font-weight="bold">Extend</text>
+            </g>
+            
+            <!-- ALU Control -->
+            <g class="component" id="alucontrol" data-name="ALU Control">
+                <ellipse cx="560" cy="480" rx="60" ry="40" fill="#eceff4" stroke="#4c566a" stroke-width="2"/>
+                <text x="560" y="475" text-anchor="middle" font-size="11" font-weight="bold">ALU</text>
+                <text x="560" y="490" text-anchor="middle" font-size="11" font-weight="bold">Control</text>
+            </g>
+            
+            <!-- Switcher -->
+            <g class="component" id="switcher" data-name="Switcher">
+                <rect x="520" y="180" width="100" height="70" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="570" y="205" text-anchor="middle" font-size="12" font-weight="bold">Switcher</text>
+                <text x="570" y="225" text-anchor="middle" font-size="9">Manual/Auto</text>
+                <text x="570" y="240" text-anchor="middle" font-size="9">Control</text>
+            </g>
+            
+            <!-- FIFO -->
+            <g class="component" id="fifo" data-name="FIFO Debug">
+                <rect x="820" y="500" width="100" height="70" fill="#eceff4" stroke="#4c566a" stroke-width="2" rx="4"/>
+                <text x="870" y="525" text-anchor="middle" font-size="12" font-weight="bold">FIFO</text>
+                <text x="870" y="545" text-anchor="middle" font-size="9">Debug</text>
+                <text x="870" y="560" text-anchor="middle" font-size="9">Display</text>
+            </g>
+            
+            <!-- HPS -->
+            <g class="component" id="hps" data-name="HPS (ARM Cortex-A9)">
+                <rect x="950" y="50" width="200" height="80" fill="#e5e9f0" stroke="#b48ead" stroke-width="3" rx="4"/>
+                <text x="1050" y="75" text-anchor="middle" font-size="14" font-weight="bold">HPS</text>
+                <text x="1050" y="95" text-anchor="middle" font-size="11">(ARM Cortex-A9)</text>
+                <text x="1050" y="115" text-anchor="middle" font-size="10">Program Loader &amp; Monitor</text>
+            </g>
+            
+            <!-- Main datapath wires -->
+            <path class="wire" id="wire-pc-imem" d="M 130 180 L 170 180" marker-end="url(#arrowhead)"/>
+            <path class="wire" id="wire-imem-control" d="M 240 230 L 240 260 L 370 260 L 370 210" marker-end="url(#arrowhead)"/>
+            <path class="wire" id="wire-imem-regfile" d="M 310 200 L 320 200 L 320 300 L 340 300" marker-end="url(#arrowhead)"/>
+            <path class="wire" id="wire-regfile-alu" d="M 460 320 L 620 320" marker-end="url(#arrowhead)"/>
+            <path class="wire" id="wire-alu-dmem" d="M 720 360 L 820 360" marker-end="url(#arrowhead)"/>
+            <!-- Writeback path: goes above Switcher -->
+            <path class="wire" id="wire-dmem-regfile" d="M 890 300 L 890 160 L 640 160 L 640 170 L 480 170 L 480 260 L 400 260 L 400 270" marker-end="url(#arrowhead)"/>
+            
+            <!-- Control wires -->
+            <path class="wire control-wire" id="wire-control-switcher" d="M 450 200 L 520 200" marker-end="url(#arrowhead)"/>
+            <path class="wire control-wire" id="wire-switcher-pc" d="M 570 180 L 570 110 L 90 110 L 90 150" marker-end="url(#arrowhead)"/>
+            <path class="wire control-wire" id="wire-switcher-regfile" d="M 570 250 L 570 280 L 460 280" marker-end="url(#arrowhead)"/>
+            
+            <!-- Control to ALU Control - routes left around Register File -->
+            <path class="wire control-wire" id="wire-control-alucontrol" d="M 400 210 L 400 240 L 320 240 L 320 460 L 500 460" marker-end="url(#arrowhead)"/>
+            
+            <!-- Instruction Memory to ALU Control (func field) -->
+            <path class="wire" id="wire-imem-alucontrol" d="M 240 230 L 240 505 L 500 505" marker-end="url(#arrowhead)"/>
+            
+            <!-- Instruction Memory to Sign Extend (immediate field) -->
+            <path class="wire" id="wire-imem-signext" d="M 240 230 L 240 260 L 280 260 L 280 475 L 340 475" marker-end="url(#arrowhead)"/>
+            
+            <!-- ALU Control to ALU -->
+            <path class="wire control-wire" id="wire-alucontrol-alu" d="M 580 440 L 580 405 L 620 405" marker-end="url(#arrowhead)"/>
+            
+            <!-- Register File to Data Memory (write data) - routes below ALU, above ALU Control -->
+            <path class="wire" id="wire-regfile-dmem" d="M 460 350 L 490 350 L 490 430 L 750 430 L 750 380 L 820 380" marker-end="url(#arrowhead)"/>
+            
+            <!-- HPS wires (dashed) - pointing to right side ports -->
+            <path class="wire hps-wire" id="wire-hps-imem" d="M 950 100 L 340 100 L 340 160 L 310 160" marker-end="url(#arrowhead)"/>
+            <path class="wire hps-wire" id="wire-hps-dmem" d="M 950 110 L 980 110 L 980 360 L 960 360" marker-end="url(#arrowhead)"/>
+            <path class="wire hps-wire" id="wire-hps-fifo" d="M 950 120 L 940 120 L 940 535 L 920 535" marker-end="url(#arrowhead)"/>
+            
+            <!-- FIFO debug wire -->
+            <path class="wire" id="wire-regfile-fifo" d="M 460 360 L 480 360 L 480 535 L 820 535" marker-end="url(#arrowhead)"/>
+            
+            <!-- Sign Extend to ALU (via mux) -->
+            <path class="wire" id="wire-signext-alu" d="M 440 475 L 480 475 L 480 430 L 600 430 L 600 380 L 620 380" marker-end="url(#arrowhead)"/>
+        </svg>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-line" style="background: #4c566a;"></div>
+                <span>Data path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #5e81ac; border-top: 2px dashed #5e81ac;"></div>
+                <span>Control signals</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #b48ead; border-top: 2px dashed #b48ead;"></div>
+                <span>HPS connections</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="highlightPath('fetch')">Show Fetch Stage</button>
+            <button onclick="highlightPath('execute')">Show Execute Stage</button>
+            <button onclick="highlightPath('writeback')">Show Writeback Stage</button>
+            <button onclick="highlightPath('hps')">Show HPS Connections</button>
+            <button onclick="clearHighlight()">Clear All</button>
+        </div>
+    </div>
+    
+    <div id="info-panel">
+        <h3>Component Information</h3>
+        <p>Click on any component to see detailed information. Use the buttons above to highlight different execution stages.</p>
+    </div>
+    
+    <script>
+        const componentInfo = {
+            'pc': {
+                name: 'Program Counter (PC)',
+                description: 'Holds the address of the current instruction being executed. Updates every clock cycle based on pc_en from the Switcher.',
+                signals: ['current_pc[31:0]', 'next_pc[31:0]', 'pc_en'],
+                role: 'Provides instruction address to Instruction Memory Port 1'
+            },
+            'imem': {
+                name: 'Instruction Memory (Dual-Port BRAM)',
+                description: '4KB dual-port memory. Port 1 connects to FPGA processor for instruction fetch. Port 2 connects to HPS for program loading.',
+                signals: ['address[11:2]', 'readdata[31:0]', 'write (Port 2 only)'],
+                role: 'Stores program instructions, allows HPS to load new programs'
+            },
+            'control': {
+                name: 'Control Unit',
+                description: 'Decodes instruction opcode and generates control signals for all datapath components. Sends ALUOp to ALU Control.',
+                signals: ['op_code[5:0]', 'reg_dst', 'alu_src', 'mem_2_reg', 'reg_write', 'mem_read', 'mem_write[3:0]', 'branch', 'alu_op[1:0]'],
+                role: 'Central controller that coordinates all processor operations'
+            },
+            'regfile': {
+                name: 'Register File (32 x 32-bit)',
+                description: 'Contains 32 general-purpose registers. Supports 2 read ports and 1 write port per cycle. Read addresses come from instruction fields.',
+                signals: ['r1_addr_i[4:0]', 'r2_addr_i[4:0]', 'w_addr_i[4:0]', 'w_data_i[31:0]', 'w_en_i', 'r1_data_o[31:0]', 'r2_data_o[31:0]'],
+                role: 'Stores processor working data, register $0 is always zero. R2 output goes to both ALU and Data Memory.'
+            },
+            'alu': {
+                name: 'ALU (Arithmetic Logic Unit)',
+                description: 'Performs arithmetic and logical operations: ADD, SUB, AND, OR, SLT.',
+                signals: ['input_a[31:0]', 'input_b[31:0]', 'alu_control[3:0]', 'result[31:0]', 'zero'],
+                role: 'Executes computations and generates memory addresses'
+            },
+            'dmem': {
+                name: 'Data Memory (Dual-Port BRAM)',
+                description: '4KB dual-port memory. Port 1 for processor load/store. Port 2 for HPS monitoring. Write data comes from Register File R2 output.',
+                signals: ['address[11:2]', 'writedata[31:0]', 'readdata[31:0]', 'write', 'byteenable[3:0]'],
+                role: 'Stores program data, accessible by both processor and HPS. Address from ALU, data from registers.'
+            },
+            'signext': {
+                name: 'Sign Extend',
+                description: 'Extends 16-bit immediate field from instruction to 32 bits by replicating the sign bit.',
+                signals: ['petit[15:0]', 'extended[31:0]'],
+                role: 'Prepares immediate values for ALU operations and branch offsets'
+            },
+            'alucontrol': {
+                name: 'ALU Control',
+                description: 'Generates specific ALU operation code based on ALUOp from Control Unit and function field from instruction.',
+                signals: ['alu_op[1:0]', 'func_code[5:0]', 'alu_control[3:0]'],
+                role: 'Decodes R-type function field and control signals to set ALU operation'
+            },
+            'switcher': {
+                name: 'Switcher (Manual/Auto Control)',
+                description: 'Gates control signals for manual stepping mode. Enables single-step debugging.',
+                signals: ['manual_en (SW9)', 'button (KEY0)', 'pc_en', 'reg_write', 'mem_write'],
+                role: 'Allows manual execution control for debugging'
+            },
+            'fifo': {
+                name: 'FIFO Debug Display',
+                description: 'Captures last 3 memory write operations from Register File R2 output and displays them on 7-segment displays.',
+                signals: ['dmem_write', 'r2_data_o[31:0]', 'fifo_hex0-5[6:0]'],
+                role: 'Provides visual debugging of memory writes, exports to HPS'
+            },
+            'hps': {
+                name: 'HPS (ARM Cortex-A9)',
+                description: 'Hard Processor System running Linux. Loads programs and monitors execution via AXI bus.',
+                signals: ['AXI master bus', 'PC export', 'FIFO exports'],
+                role: 'Program loader, runtime monitor, and debug interface'
+            }
+        };
+        
+        const pathHighlights = {
+            'fetch': {
+                components: ['pc', 'imem', 'control'],
+                wires: ['wire-pc-imem', 'wire-imem-control']
+            },
+            'execute': {
+                components: ['control', 'regfile', 'alu', 'signext', 'alucontrol', 'switcher'],
+                wires: ['wire-imem-regfile', 'wire-regfile-alu', 'wire-control-switcher', 'wire-signext-alu', 
+                        'wire-control-alucontrol', 'wire-imem-alucontrol', 'wire-imem-signext', 'wire-alucontrol-alu']
+            },
+            'writeback': {
+                components: ['alu', 'dmem', 'regfile', 'fifo'],
+                wires: ['wire-alu-dmem', 'wire-dmem-regfile', 'wire-regfile-fifo', 'wire-switcher-regfile', 'wire-regfile-dmem']
+            },
+            'hps': {
+                components: ['hps', 'imem', 'dmem', 'fifo'],
+                wires: ['wire-hps-imem', 'wire-hps-dmem', 'wire-hps-fifo']
+            }
+        };
+        
+        // Component click handling
+        document.querySelectorAll('.component').forEach(comp => {
+            comp.addEventListener('click', function() {
+                const id = this.id;
+                const info = componentInfo[id];
+                
+                // Clear previous highlights
+                document.querySelectorAll('.component').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.wire').forEach(w => w.classList.remove('active'));
+                
+                // Highlight clicked component
+                this.classList.add('active');
+                
+                // Update info panel
+                const panel = document.getElementById('info-panel');
+                panel.innerHTML = `
+                    <h3>${info.name}</h3>
+                    <p><strong>Description:</strong> ${info.description}</p>
+                    <p><strong>Key Signals:</strong> <span class="signal-name">${info.signals.join(', ')}</span></p>
+                    <p><strong>Role:</strong> ${info.role}</p>
+                `;
+            });
+        });
+        
+        function highlightPath(pathName) {
+            // Clear previous highlights
+            document.querySelectorAll('.component').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.wire').forEach(w => w.classList.remove('active'));
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            
+            // Highlight new path
+            const path = pathHighlights[pathName];
+            if (path) {
+                path.components.forEach(id => {
+                    document.getElementById(id)?.classList.add('active');
+                });
+                path.wires.forEach(id => {
+                    const wire = document.getElementById(id);
+                    if (wire) {
+                        wire.classList.add('active');
+                        wire.style.strokeDasharray = '10';
+                    }
+                });
+                
+                // Update button state
+                event.target.classList.add('active');
+                
+                // Update info panel
+                const descriptions = {
+                    'fetch': 'Stage 1 - Fetch: PC provides address to Instruction Memory, instruction is read, and Control Unit begins decoding the opcode.',
+                    'execute': 'Stage 2 - Execute: Registers are read using instruction fields, ALU Control decodes operation from Control Unit and function field, ALU performs computation with inputs from registers and sign-extended immediate.',
+                    'writeback': 'Stage 3 - Writeback: Memory is accessed with ALU address and Register R2 data, results are written back to Register File, FIFO captures writes from R2 output.',
+                    'hps': 'HPS Connections: ARM processor can load programs to Instruction Memory Port 2, monitor Data Memory Port 2, and read FIFO debug exports including PC status.'
+                };
+                
+                document.getElementById('info-panel').innerHTML = `
+                    <h3>${pathName.charAt(0).toUpperCase() + pathName.slice(1)} Path</h3>
+                    <p>${descriptions[pathName]}</p>
+                    <p style="margin-top: 10px; font-style: italic;">Click on individual components for more details.</p>
+                `;
+            }
+        }
+        
+        function clearHighlight() {
+            document.querySelectorAll('.component').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.wire').forEach(w => {
+                w.classList.remove('active');
+                w.style.strokeDasharray = '';
+            });
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('info-panel').innerHTML = `
+                <h3>Component Information</h3>
+                <p>Click on any component to see detailed information. Use the buttons above to highlight different execution stages.</p>
+            `;
+        }
+    </script>
+</body>
+</html>

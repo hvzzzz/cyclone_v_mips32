@@ -1,0 +1,14 @@
+00000820 // add $1, $0, $0 # $1 = 0 -> F(0) = 0 (Current Fib)
+20020001 // addi $2, $0, 1 # $2 = 1 -> F(1) = 1 (Next Fib)
+00001820 // add $3, $0, $0 # $3 = 0 -> (Memory Address Pointer)
+20060000 // addi $6, $0, 0 # $6 = 0 -> (Initialization of the counter)
+20040031 // addi $4, $0, 49 # $4 = 49 -> (Loop Limit)
+10C40007 // loop: beq $6, $4, 7 # $6 == $4? -> If Pointer == $4, jump forward 7 instructions to 'exit'
+AC610000 // sw $1, 0($3) # $1 = 0 -> Store Current Fib to Data Memory
+00222820 // add $5, $1, $2 # $5 = $1 + $2 # 0 + 1 -> F(2) = F(1) + F(0) # F(n) = F(n-1)+F(n-2)
+00020820 // add $1, $0, $2 # $1 = $0 + $2 # 0 + 1 -> F(0) = F(1) # F(n-2) = F(n-1)
+00051020 // add $2, $0, $5 # $2 = $0 + $5 # 0 + 1 -> F(1) = F(2) # F(n-1) = F(n)
+20630004 // addi $3, $3, 4 # $3 = $3 + 4 -> Pointer = Pointer + 4
+20C60001 // addi $6, $6, 1 # $6 = $6 + 1 -> Counter = Counter +1
+1000FFF8 // beq $0, $0, -8 # $0 == $0? -> Unconditional jump backward 8 instructions to 'loop'
+1000FFFF // exit: beq $0, $0, -1 # Infinite trap
